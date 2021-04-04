@@ -3,20 +3,49 @@ using DotX.Abstraction;
 using DotX.Threading;
 using Xlib = X11.Xlib;
 using System.Runtime.InteropServices;
+using Mono.Unix.Native;
+using System.Threading;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace DotX.XOrg
 {
     public class LinuxX11Platform : IPlatform
     {
-        public IntPtr Display { get; }
+        private readonly List<LinuxX11WindowImpl> _windows = 
+            new List<LinuxX11WindowImpl>();
+
+        public IntPtr Display { get; } 
+        
         public LinuxX11Platform()
         {
             Display = Xlib.XOpenDisplay(null);
+
+            Xlib.XSetErrorHandler(OnError);
+            Dispatcher.CurrentDispatcher.SetWaitFunc(ListenToEvents);
         }
 
-        public IWindowImpl CreateWindow()
+        private int OnError(IntPtr display, ref X11.XErrorEvent ev)
         {
-            return new LinuxX11WindowImpl(this);
+            int size = 256;
+            var mem = Marshal.AllocHGlobal(sizeof(char) * size);
+
+            var status = Xlib.XGetErrorText(display, 
+                                            ev.error_code, 
+                                            mem,
+                                            size);
+
+            string msg = Marshal.PtrToStringAuto(mem);
+
+            return 0;
+        }
+
+        public IWindowImpl CreateWindow(int width, int height)
+        {
+            var wind = new LinuxX11WindowImpl(this, width, height);
+
+            _windows.Add(wind);
+            return wind;
         }
 
         public void ListenToEvents()
@@ -26,24 +55,11 @@ namespace DotX.XOrg
 
             try
             {
-                while (true)
-                {
-                    int eventsPendind = Xlib.XPending(Display);
-                    if (eventsPendind == 0)
-                    {
-                        d.BeginInvoke(() => ListenToEvents(), OperationPriority.Normal);
-                        break;
-                    }
+                Xlib.XNextEvent(Display, ev);
 
-                    X11.Status status = Xlib.XNextEvent(Display, ev);
-                    if(status == X11.Status.Failure)
-                    {
-                        throw new Exception();
-                    }
-                    var xevent = Marshal.PtrToStructure<X11.XAnyEvent>(ev);
+                var xevent = Marshal.PtrToStructure<X11.XAnyEvent>(ev);
 
-                    HandleEvent(xevent, ev);
-                }
+                HandleEvent(xevent, ev, d);
             }
             finally
             {
@@ -51,13 +67,56 @@ namespace DotX.XOrg
             }
         }
 
-        private void HandleEvent(X11.XAnyEvent xevent, IntPtr ev)
+        private void HandleEvent(X11.XAnyEvent xevent, IntPtr ev, Dispatcher d)
         {
             switch(xevent.type)
             {
-                default:
-                    throw new NotSupportedException();
+                case (int)X11.Event.Expose:
+                    var exposeEvent = Marshal.PtrToStructure<X11.XExposeEvent>(ev);
+                    HandleExposeEvent(exposeEvent, d);
+                    break;
+                
+                case (int)X11.Event.ResizeRequest:
+                    while (Xlib.XCheckMaskEvent(Display, X11.EventMask.ResizeRedirectMask, ev)) 
+                    {}
+
+                    var resizeEvent = Marshal.PtrToStructure<X11.XResizeRequestEvent>(ev);
+                    HandleResizeEvent(resizeEvent, d);
+                    break;
+                
+                case (int)X11.Event.ConfigureNotify:
+                    var configuraEvent = Marshal.PtrToStructure<X11.XConfigureRequestEvent>(ev);
+                    HandleConfigureEvent(configuraEvent, d);
+                    break;
             }
+        }
+
+        private void HandleConfigureEvent(X11.XConfigureRequestEvent configuraEvent, Dispatcher d)
+        {
+            d.Invoke(() => {
+                var window = _windows.First(w => w.XWindow == configuraEvent.window);
+                window.OnResize(configuraEvent.width, configuraEvent.height); 
+            });
+        }
+
+        private void HandleResizeEvent(X11.XResizeRequestEvent resizeEvent, Dispatcher d)
+        {
+            d.Invoke(() => {
+                var window = _windows.First(w => w.XWindow == resizeEvent.window);
+                window.Resize(resizeEvent.width, resizeEvent.height); 
+            });
+        }
+
+        private void HandleExposeEvent(X11.XExposeEvent exposeEvent, Dispatcher d)
+        {
+            d.Invoke(() => {
+                var window = _windows.First(w => w.XWindow == exposeEvent.window);
+                
+                window.MarkDirty(new RenderEventArgs(exposeEvent.x,
+                                                     exposeEvent.y,
+                                                     exposeEvent.width,
+                                                     exposeEvent.height));
+            });
         }
     }
 }

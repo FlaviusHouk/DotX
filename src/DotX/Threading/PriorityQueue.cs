@@ -37,12 +37,19 @@ namespace DotX.Threading
 
         public bool TryDequeue(out TElem value)
         {
+            value = default;
+
             if(_objectStore.Count == 0)
-                throw new InvalidOperationException();
+                return false;
 
             var queue = _objectStore.First();
+
+            var returnValue = queue.Value.TryDequeue(out value);
+
+            if(queue.Value.Count == 0)
+                _objectStore.Remove(queue.Key);
             
-            return queue.Value.TryDequeue(out value);
+            return returnValue;
         }
 
         public TElem Peek()

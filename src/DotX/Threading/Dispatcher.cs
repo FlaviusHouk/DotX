@@ -7,11 +7,13 @@ namespace DotX.Threading
     {
         private static Lazy<Dispatcher> _dispatcherCreator =
             new Lazy<Dispatcher>(() => new Dispatcher(Thread.CurrentThread));
-
+            
         public static Dispatcher CurrentDispatcher => 
             _dispatcherCreator.Value;
         
         private readonly Thread _therad;
+        private readonly ManualResetEventSlim _awaiter;
+        private Action _waitFunc;
 
         private readonly PriorityQueue<DispatcherJob, OperationPriority> _queue =
             new PriorityQueue<DispatcherJob, OperationPriority>();
@@ -19,6 +21,7 @@ namespace DotX.Threading
         private Dispatcher(Thread therad)
         {
             _therad = therad;
+            _awaiter = new ManualResetEventSlim();
         }
 
         public void Invoke(Action action)
@@ -27,7 +30,7 @@ namespace DotX.Threading
 
             if(_therad.ManagedThreadId == Thread.CurrentThread.ManagedThreadId)
             {
-                _queue.Enqueue(new DispatcherJob(action), OperationPriority.Normal);
+                _queue.Enqueue(job, OperationPriority.Normal);
 
                 ProcessQueue(job);
             }
@@ -43,6 +46,9 @@ namespace DotX.Threading
         public void BeginInvoke(Action action, OperationPriority priority)
         {
             _queue.Enqueue(new DispatcherJob(action), priority);
+
+            if(!_awaiter.IsSet && _awaiter is null)
+                _awaiter.Set();
         }
 
         public void RunLoop()
@@ -62,6 +68,11 @@ namespace DotX.Threading
             }
         }
 
+        internal void SetWaitFunc(Action waitFunc)
+        {
+            _waitFunc = waitFunc;
+        }
+
         private void ProcessQueue(DispatcherJob job = null)
         {
             DispatcherJob current = null;
@@ -69,8 +80,22 @@ namespace DotX.Threading
             {
                 if(_queue.TryDequeue(out current))
                     current.Invoke();
+                else if (job is null)
+                    Wait();
             }
-            while(!ReferenceEquals(current, job));
+            while(!ReferenceEquals(current, job) || job == null);
+        }
+
+        private void Wait()
+        {
+            if(_waitFunc != null)
+            {
+                _waitFunc.Invoke();
+                return;
+            }
+
+            _awaiter.Reset();
+            _awaiter.Wait(50);
         }
     }
 }

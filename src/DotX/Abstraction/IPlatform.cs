@@ -2,7 +2,7 @@ namespace DotX.Abstraction
 {
     public interface IPlatform
     {
-        IWindowImpl CreateWindow();
+        IWindowImpl CreateWindow(int width, int height);
         void ListenToEvents();
     }
 }

@@ -29,7 +29,7 @@ namespace DotX
         public void Run()
         {
             Dispatcher d = Dispatcher.CurrentDispatcher;
-            d.BeginInvoke(() => Platform.ListenToEvents(), OperationPriority.Normal);
+            d.BeginInvoke(() => _windows[0].Show(), OperationPriority.Normal);
             d.RunLoop();
         }
     }
