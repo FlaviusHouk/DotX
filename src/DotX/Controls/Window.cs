@@ -1,6 +1,7 @@
 using System;
 using Cairo;
 using DotX.Abstraction;
+using DotX.Brush;
 
 namespace DotX.Controls
 {
@@ -13,6 +14,7 @@ namespace DotX.Controls
         {
             Width = 300;
             Height = 300;
+            Background = new SolidColorBrush(1, 0, 0);
 
             _windowImpl = Application.CurrentApp.Platform.CreateWindow(Width,
                                                                        Height);
@@ -31,13 +33,6 @@ namespace DotX.Controls
             _windowImpl.Resize(Width, Height);
             _windowImpl.Show();
             _isVisible = true;
-        }
-
-        public override void Render(Context content)
-        {
-            content.Rectangle(0, 0, Width, Height);
-            content.SetSourceRGB(1, 0, 0);
-            content.Fill();
         }
 
         private void WindowDirty(Context context, RenderEventArgs args)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cairo;
+using DotX.Brush;
 
 namespace DotX.Controls
 {
@@ -21,6 +22,10 @@ namespace DotX.Controls
                                                               PropertyOptions.Inherits,
                                                               coerceFunc: CoerceWidth);
 
+        public static readonly CompositeObjectProperty BackgroundProperty =
+            TypedObjectProperty<IBrush>.RegisterProperty<Widget>(nameof(Background),
+                                                                 PropertyOptions.Inherits);
+
         public ICollection<Widget> VisualChildren { get; }
 
         public int Width 
@@ -35,6 +40,12 @@ namespace DotX.Controls
             set => SetValue<int>(HeightProperty, value);
         }
 
+        public IBrush Background
+        {
+            get => GetValue<IBrush>(BackgroundProperty);
+            set => SetValue(BackgroundProperty, value);
+        }
+
         public override void ArrangeCore(Rectangle size)
         {
             throw new System.NotImplementedException();
@@ -47,7 +58,7 @@ namespace DotX.Controls
 
         public override void Render(Context context)
         {
-            throw new System.NotImplementedException();
+            Background?.Render(context, Width, Height);
         }
     }
 }
