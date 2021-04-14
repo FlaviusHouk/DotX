@@ -4,52 +4,38 @@ using DotX.Abstraction;
 
 namespace DotX.Controls
 {
-    public class Window
+    public class Window : Control
     {
-        private int _width = 300;
-        private int _height = 300;
         private bool _isVisible;
-
-        public int Width 
-        {
-            get => _width;
-            set
-            {
-                if(_width != value)
-                {
-                    _width = value;
-
-                    if(_isVisible)
-                        _windowImpl.Resize(_width, _height);
-                }
-            }
-        }
 
         private readonly IWindowImpl _windowImpl;
         public Window()
         {
-            _windowImpl = Application.CurrentApp.Platform.CreateWindow(_width,
-                                                                       _height);
+            Width = 300;
+            Height = 300;
+
+            _windowImpl = Application.CurrentApp.Platform.CreateWindow(Width,
+                                                                       Height);
             _windowImpl.Dirty += WindowDirty;
             _windowImpl.Resizing += Resizing;
         }
 
         private void Resizing(int width, int height)
         {
-            _width = width;
-            _height = height;
+            Width = width;
+            Height = height;
         }
 
         public void Show()
         {
-            _windowImpl.Resize(_width, _height);
+            _windowImpl.Resize(Width, Height);
             _windowImpl.Show();
             _isVisible = true;
         }
 
-        private void Render(Context content)
+        public override void Render(Context content)
         {
-            content.Rectangle(0, 0, Width, _height);
+            content.Rectangle(0, 0, Width, Height);
             content.SetSourceRGB(1, 0, 0);
             content.Fill();
         }
