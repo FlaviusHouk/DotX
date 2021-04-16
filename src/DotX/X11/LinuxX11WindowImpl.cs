@@ -54,8 +54,7 @@ namespace DotX.XOrg
 
         public void MarkDirty(RenderEventArgs args)
         {
-            using Context context = CreateContext();
-            Dirty?.Invoke(context, args);
+            Dirty?.Invoke(args);
         }
         
         public void OnResize(int width, int height)
@@ -69,8 +68,6 @@ namespace DotX.XOrg
             }
 
             Resizing?.Invoke(width, height);
-
-            MarkDirty(new RenderEventArgs(0, 0, width, height));
         }
 
         public Context CreateContext()

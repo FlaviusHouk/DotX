@@ -19,8 +19,21 @@ namespace DotX
 
         public IEnumerable<CompositeObjectProperty> GetProperties(Type objType)
         {
-            return _registeredProperties.TryGetValue(objType, out var props) ? 
+            var originalProps = _registeredProperties.TryGetValue(objType, out var props) ? 
                 props : Enumerable.Empty<CompositeObjectProperty>();
+
+            while(objType.BaseType is not null)
+            {
+                objType = objType.BaseType;
+
+                var baseTypeProps = _registeredProperties.TryGetValue(objType, out var btProps) ? 
+                    btProps.Where(p => p.Options.HasFlag(PropertyOptions.Inherits)) : 
+                    Enumerable.Empty<CompositeObjectProperty>();
+
+                originalProps = originalProps.Concat(baseTypeProps);
+            }
+
+            return originalProps;
         }
 
         public void RegisterProperty<TOwner>(CompositeObjectProperty property)

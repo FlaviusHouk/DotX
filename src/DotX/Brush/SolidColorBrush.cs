@@ -17,7 +17,7 @@ namespace DotX.Brush
             _b = b;
         }
 
-        public void Render(Context context, int width, int height)
+        public void Render(Context context, double width, double height)
         {
             context.SetSourceRGB(_r, _g, _b);
             context.Rectangle(0, 0, width, height);

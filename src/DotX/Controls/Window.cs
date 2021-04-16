@@ -9,35 +9,37 @@ namespace DotX.Controls
     {
         private bool _isVisible;
 
-        private readonly IWindowImpl _windowImpl;
+        public IWindowImpl WindowImpl { get; }
+
         public Window()
         {
             Width = 300;
             Height = 300;
             Background = new SolidColorBrush(1, 0, 0);
 
-            _windowImpl = Application.CurrentApp.Platform.CreateWindow(Width,
+            WindowImpl = Application.CurrentApp.Platform.CreateWindow(Width,
                                                                        Height);
-            _windowImpl.Dirty += WindowDirty;
-            _windowImpl.Resizing += Resizing;
+            WindowImpl.Dirty += WindowDirty;
+            WindowImpl.Resizing += Resizing;
         }
 
         private void Resizing(int width, int height)
         {
-            Width = width;
-            Height = height;
+            IsMeasureDirty = true;
+            Measure(new Rectangle(0,0, width, height));
+            Invalidate();
         }
 
         public void Show()
         {
-            _windowImpl.Resize(Width, Height);
-            _windowImpl.Show();
+            WindowImpl.Resize(Width, Height);
+            WindowImpl.Show();
             _isVisible = true;
         }
 
-        private void WindowDirty(Context context, RenderEventArgs args)
+        private void WindowDirty(RenderEventArgs args)
         {
-            Render(context);
+            Invalidate(new Rectangle(args.X, args.Y, args.Width, args.Height));
         }
     }
 }
