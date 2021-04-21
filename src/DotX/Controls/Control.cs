@@ -28,7 +28,10 @@ namespace DotX.Controls
         {
             base.Render(context);
 
-            Content?.Render(context);
+            if (!IsVisible || Content is null)
+                return;
+
+            Content.Render(context);
         }
 
         private void OnContentChanged(Visual oldValue, Visual newValue)
@@ -55,18 +58,22 @@ namespace DotX.Controls
 
         protected override Rectangle MeasureCore(Rectangle size)
         {
-            Content?.Measure(size);
-
-            return Content?.DesiredSize ??
+            if(!IsVisible || Content is null)
                 new Rectangle(size.X, size.Y, 0, 0);
+
+            Content.Measure(size);
+
+            return Content.DesiredSize;
         }
 
         protected override Rectangle ArrangeCore(Rectangle size)
         {
-            Content?.Arrange(size);
-            
-            return Content?.RenderSize ??
+            if(!IsVisible || Content is null)
                 new Rectangle(size.X, size.Y, 0, 0);
+
+            Content.Arrange(size);
+            
+            return Content.RenderSize;
         }
     }
 }

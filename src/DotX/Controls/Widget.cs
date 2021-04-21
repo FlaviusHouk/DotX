@@ -32,6 +32,11 @@ namespace DotX.Controls
             CompositeObjectProperty.RegisterProperty<IBrush, Widget>(nameof(Foreground),
                                                                      PropertyOptions.Inherits);
 
+        public static readonly CompositeObjectProperty IsVisibleProperty =
+            CompositeObjectProperty.RegisterProperty<bool, Widget>(nameof(IsVisible),
+                                                                   PropertyOptions.Inherits,
+                                                                   true);
+
         public Widget LogicalParent { get; internal set; }
         public ICollection<Visual> VisualChildren { get; }
 
@@ -59,13 +64,25 @@ namespace DotX.Controls
             set => SetValue(ForegroundProperty, value);
         }
 
+        public bool IsVisible
+        {
+            get => GetValue<bool>(IsVisibleProperty);
+            set => SetValue(IsVisibleProperty, value);
+        }
+
         protected override Rectangle ArrangeCore(Rectangle size)
         {
+            if(!IsVisible)
+                new Rectangle();
+
             return size;
         }
 
         protected override Rectangle MeasureCore(Rectangle size)
         {
+            if(!IsVisible)
+                new Rectangle();
+
             return size;
         }
 

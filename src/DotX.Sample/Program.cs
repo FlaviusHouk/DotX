@@ -20,15 +20,15 @@ namespace DotX.Sample
             textBlock.Text = "Привіт!";
             textBlock.FontFamily = "Liberation Serif";
             textBlock.FontSize = 12;
-            stackPanel.Children.Add(textBlock);
+            stackPanel.AddChild(textBlock);
             mainWin.Content = stackPanel;
 
             var textBlock2 = new TextBlock();
             textBlock2.Foreground = new SolidColorBrush(0, 0, 0);
             textBlock2.Text = "DotX";
-            textBlock2.FontFamily = "Source Code Pro Regular 15";
+            textBlock2.FontFamily = "Source Code Pro Regular";
             textBlock2.FontSize = 12;
-            stackPanel.Children.Add(textBlock2);
+            stackPanel.AddChild(textBlock2);
 
             app.Windows.Add(mainWin);
             

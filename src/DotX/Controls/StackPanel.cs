@@ -68,8 +68,8 @@ namespace DotX.Controls
 
         protected override Rectangle MeasureCore(Rectangle size)
         {
-            if(Children.Count < 1)
-                return new Rectangle(0, 0, 0, 0);
+            if(Children.Count < 1 || !IsVisible)
+                return new Rectangle(size.X, size.Y, 0, 0);
 
             var firstChild = Children.First();
             bool wasDirty = firstChild.IsMeasureDirty;
@@ -90,7 +90,7 @@ namespace DotX.Controls
 
         protected override Rectangle ArrangeCore(Rectangle size)
         {
-            if(Children.Count < 1)
+            if(Children.Count < 1 || !IsVisible)
                 return new Rectangle(size.X, size.Y, 0,0);
 
             var firstChild = Children.First();

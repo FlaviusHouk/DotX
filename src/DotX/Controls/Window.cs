@@ -1,13 +1,15 @@
-using System;
 using Cairo;
 using DotX.Abstraction;
-using DotX.Brush;
 
 namespace DotX.Controls
 {
     public class Window : Control
     {
-        private bool _isVisible;
+        static Window()
+        {
+            CompositeObjectProperty.OverrideProperty<bool, Window>(IsVisibleProperty,
+                                                                   false);
+        }
 
         public IWindowImpl WindowImpl { get; }
 
@@ -30,9 +32,12 @@ namespace DotX.Controls
 
         public void Show()
         {
+            if(IsVisible)
+                return;
+
             WindowImpl.Resize(Width, Height);
             WindowImpl.Show();
-            _isVisible = true;
+            IsVisible = true;
         }
 
         private void WindowDirty(RenderEventArgs args)
