@@ -1,0 +1,138 @@
+using Pango;
+using Cairo;
+using System.Linq;
+using System;
+
+namespace DotX.Controls
+{
+    public class TextBlock : Widget
+    {
+        private static Pango.Context _defaultContext;
+
+        static TextBlock()
+        {
+            using var surf = new ImageSurface(Format.RGB24, 1, 1);
+            using var ctx = new Cairo.Context(surf);
+            _defaultContext = Pango.CairoHelper.CreateContext(ctx); 
+        }
+
+        public static readonly CompositeObjectProperty TextProperty =
+            TypedObjectProperty<string>.RegisterProperty<TextBlock>(nameof(Text),
+                                                                    PropertyOptions.Inherits);
+
+        public static readonly CompositeObjectProperty FontSizeProperty =
+            TypedObjectProperty<int>.RegisterProperty<TextBlock>(nameof(FontSize),
+                                                                 PropertyOptions.Inherits,
+                                                                 changeValueFunc: OnFontSizePropertyChanged);
+
+        private static void OnFontSizePropertyChanged(CompositeObject obj, int oldValue, int newValue)
+        {
+            var textBlock = (TextBlock)obj;
+
+            if(textBlock._font is not null)
+                textBlock._font.Dispose();
+
+            textBlock._font = new FontDescription()
+            {
+                Family = textBlock.FontFamily,
+                Size = (int)(newValue * Pango.Scale.PangoScale)
+            };
+        }
+
+        public static readonly CompositeObjectProperty FontFamilyProperty =
+            TypedObjectProperty<string>.RegisterProperty<TextBlock>(nameof(FontFamily),
+                                                                    PropertyOptions.Inherits,
+                                                                    changeValueFunc: OnFontFamilyPropertyChanged);
+
+        private static void OnFontFamilyPropertyChanged(CompositeObject arg1, string arg2, string arg3)
+        {
+            var textBlock = (TextBlock)arg1;
+
+            if(textBlock._font is not null)
+                textBlock._font.Dispose();
+
+            textBlock._font = new FontDescription()
+            {
+                Family = arg3,
+                Size = textBlock.FontSize,
+            };
+        }
+
+        public static readonly CompositeObjectProperty FontWeightProperty =
+            TypedObjectProperty<FontWeight>.RegisterProperty<TextBlock>(nameof(FontWeight),
+                                                                        PropertyOptions.Inherits);
+
+        public static readonly CompositeObjectProperty TextAlignmentProperty =
+            TypedObjectProperty<Alignment>.RegisterProperty<TextBlock>(nameof(TextAlignment),
+                                                                       PropertyOptions.Inherits);
+
+        private FontDescription _font;
+
+        public string Text
+        {
+            get => GetValue<string>(TextProperty);
+            set => SetValue(TextProperty, value);
+        }
+
+        public int FontSize
+        {
+            get => GetValue<int>(FontSizeProperty);
+            set => SetValue(FontSizeProperty, value);
+        }
+
+        public string FontFamily
+        {
+            get => GetValue<string>(FontFamilyProperty);
+            set => SetValue(FontFamilyProperty, value);
+        }
+
+        public FontWeight FontWeight
+        {
+            get => GetValue<FontWeight>(FontWeightProperty);
+            set => SetValue(FontWeightProperty, value);
+        }
+
+        public Alignment TextAlignment
+        {
+            get => GetValue<Alignment>(TextAlignmentProperty);
+            set => SetValue(TextAlignmentProperty, value);
+        }
+
+        public override void Render(Cairo.Context context)
+        {
+            base.Render(context);
+
+            using Layout pangoLayout = CairoHelper.CreateLayout(context);
+            
+            pangoLayout.SetText(Text);
+            Foreground.ApplyTo(context);
+
+            pangoLayout.FontDescription = _font;
+            pangoLayout.Alignment = TextAlignment;
+            
+            CairoHelper.ShowLayout(context, pangoLayout);
+        }
+
+        protected override Cairo.Rectangle MeasureCore(Cairo.Rectangle size)
+        {
+            using var layout = new Layout(_defaultContext); 
+
+            if(!_defaultContext.Families.Any(font => font.Name == FontFamily))
+            {
+                _defaultContext.LoadFont(_font);
+            }
+
+            layout.FontDescription = _font;
+
+            layout.SetText(Text);
+            layout.GetSize(out int width, out int height);
+            
+            return new Cairo.Rectangle(size.X, size.Y, size.Width, height / Pango.Scale.PangoScale);
+        }
+
+        protected override Cairo.Rectangle ArrangeCore(Cairo.Rectangle size)
+        {
+            return DesiredSize;
+        }
+    }
+}

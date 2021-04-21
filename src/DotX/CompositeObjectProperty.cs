@@ -44,6 +44,11 @@ namespace DotX
             return prop;
         }
 
+        internal static CompositeObjectProperty RegisterProperty<T1>(string v, PropertyOptions inherits, object onFontSizePropertyChanged)
+        {
+            throw new NotImplementedException();
+        }
+
         private readonly Func<CompositeObject, T, T> _coerceFunc;
         private readonly Action<CompositeObject, T, T> _changeValueFunc;
         public T DefaultValue { get; }

@@ -52,5 +52,21 @@ namespace DotX.Controls
             InvalidateMeasure();
             Invalidate();
         }
+
+        protected override Rectangle MeasureCore(Rectangle size)
+        {
+            Content?.Measure(size);
+
+            return Content?.DesiredSize ??
+                new Rectangle(size.X, size.Y, 0, 0);
+        }
+
+        protected override Rectangle ArrangeCore(Rectangle size)
+        {
+            Content?.Arrange(size);
+            
+            return Content?.RenderSize ??
+                new Rectangle(size.X, size.Y, 0, 0);
+        }
     }
 }

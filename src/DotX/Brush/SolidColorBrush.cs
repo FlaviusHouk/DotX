@@ -23,5 +23,10 @@ namespace DotX.Brush
             context.Rectangle(0, 0, width, height);
             context.Fill();
         }
+        
+        public void ApplyTo(Context context)
+        {
+            context.SetSourceRGB(_r, _g, _b);
+        }
     }
 }

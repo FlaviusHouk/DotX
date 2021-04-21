@@ -13,12 +13,8 @@ namespace DotX.Controls
 
         public Window()
         {
-            Width = 300;
-            Height = 300;
-            Background = new SolidColorBrush(1, 0, 0);
-
             WindowImpl = Application.CurrentApp.Platform.CreateWindow(Width,
-                                                                       Height);
+                                                                      Height);
             WindowImpl.Dirty += WindowDirty;
             WindowImpl.Resizing += Resizing;
         }
@@ -27,6 +23,8 @@ namespace DotX.Controls
         {
             IsMeasureDirty = true;
             Measure(new Rectangle(0,0, width, height));
+
+            IsArrangeDirty = true;
             Invalidate();
         }
 
@@ -40,6 +38,20 @@ namespace DotX.Controls
         private void WindowDirty(RenderEventArgs args)
         {
             Invalidate(new Rectangle(args.X, args.Y, args.Width, args.Height));
+        }
+
+        protected override Rectangle MeasureCore(Rectangle size)
+        {
+            base.MeasureCore(size);
+
+            return size;
+        }
+
+        protected override Rectangle ArrangeCore(Rectangle size)
+        {
+            base.ArrangeCore(size);
+
+            return size;
         }
     }
 }

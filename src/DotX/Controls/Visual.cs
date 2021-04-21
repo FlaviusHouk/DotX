@@ -8,7 +8,7 @@ namespace DotX.Controls
         public abstract void Render(Context context);
 
         protected abstract Rectangle MeasureCore(Rectangle size);
-        protected abstract void ArrangeCore(Rectangle size);
+        protected abstract Rectangle ArrangeCore(Rectangle size);
 
         public Rectangle DesiredSize { get; private set; }
 
@@ -18,37 +18,36 @@ namespace DotX.Controls
 
         public Visual VisualParent { get; internal set; }
 
-        public bool IsMeasureDirty { get; internal set; }
-        public bool IsArrangeDirty { get; internal set; }
+        public bool IsMeasureDirty { get; internal set; } = true;
+        public bool IsArrangeDirty { get; internal set; } = true;
 
         public bool IsDirty { get; internal set; }
 
         public void InvalidateMeasure()
         {
+            if(!IsMeasureDirty)
+                return;
+
             LayoutManager.Instance.InvalidateMeasure(this);
         }
 
         public void Measure(Rectangle size)
         {
-            if(!IsMeasureDirty)
-                return;
-
             DesiredSize = MeasureCore(size);
             IsMeasureDirty = false;
         }
 
         public void InvalidateArrange()
         {
+            if(!IsArrangeDirty)
+                return;
+
             LayoutManager.Instance.InvalidateArrange(this);
         }
 
         public void Arrange(Rectangle size)
         {
-            if(!IsArrangeDirty)
-                return;
-
-            RenderSize = size;
-            ArrangeCore(size);
+            RenderSize = ArrangeCore(size);
             IsArrangeDirty = false;
         }
 

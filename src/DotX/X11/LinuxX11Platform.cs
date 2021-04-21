@@ -42,7 +42,10 @@ namespace DotX.XOrg
 
         public IWindowImpl CreateWindow(int width, int height)
         {
-            var wind = new LinuxX11WindowImpl(this, width, height);
+             
+            var wind = new LinuxX11WindowImpl(this, 
+                                              width == 0 ? 1 : width, 
+                                              height == 0 ? 1 : height);
 
             _windows.Add(wind);
             return wind;

@@ -28,6 +28,10 @@ namespace DotX.Controls
             TypedObjectProperty<IBrush>.RegisterProperty<Widget>(nameof(Background),
                                                                  PropertyOptions.Inherits);
 
+        public static readonly CompositeObjectProperty ForegroundProperty =
+            TypedObjectProperty<IBrush>.RegisterProperty<Widget>(nameof(Foreground),
+                                                                 PropertyOptions.Inherits);
+
         public Widget LogicalParent { get; internal set; }
         public ICollection<Visual> VisualChildren { get; }
 
@@ -49,8 +53,16 @@ namespace DotX.Controls
             set => SetValue(BackgroundProperty, value);
         }
 
-        protected override void ArrangeCore(Rectangle size)
-        {}
+        public IBrush Foreground
+        {
+            get => GetValue<IBrush>(ForegroundProperty);
+            set => SetValue(ForegroundProperty, value);
+        }
+
+        protected override Rectangle ArrangeCore(Rectangle size)
+        {
+            return size;
+        }
 
         protected override Rectangle MeasureCore(Rectangle size)
         {
