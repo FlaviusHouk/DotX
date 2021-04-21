@@ -12,6 +12,8 @@ namespace DotX
         {
             if(!PropertyManager.Instance.IsPropertyAvailable(GetType(), prop))
                 throw new System.Exception();
+
+            prop = PropertyManager.Instance.GetVirtualProperty(GetType(), prop);
                 
             return ValueStorage.Storage.GetValue<T>(this, prop);
         }
@@ -20,6 +22,8 @@ namespace DotX
         {
             if(!PropertyManager.Instance.IsPropertyAvailable(GetType(), prop))
                 throw new System.Exception();
+
+            prop = PropertyManager.Instance.GetVirtualProperty(GetType(), prop);
 
             ValueStorage.Storage.SetValue<T>(this, prop, value);
         }

@@ -36,6 +36,23 @@ namespace DotX
             return originalProps;
         }
 
+        public CompositeObjectProperty GetVirtualProperty(Type t, CompositeObjectProperty p)
+        {
+            if(!IsPropertyAvailable(t, p))
+                throw new KeyNotFoundException();
+
+            var props = GetProperties(t).Where(prop => prop.PropName == p.PropName).ToArray();
+
+            CompositeObjectProperty virtProp = default;
+            while (virtProp is null)
+            {
+                virtProp = props.FirstOrDefault(prop => prop.PropertyType == t);
+                t = t.BaseType;
+            }
+
+            return virtProp;
+        }
+
         public void RegisterProperty<TOwner>(CompositeObjectProperty property)
         {
             var t = typeof(TOwner);

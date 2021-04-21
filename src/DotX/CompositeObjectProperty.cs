@@ -2,7 +2,7 @@ using System;
 
 namespace DotX
 {
-    public abstract class CompositeObjectProperty
+    public abstract class CompositeObjectProperty : IEquatable<CompositeObjectProperty>
     {
         public static CompositeObjectProperty RegisterProperty<TVal, TOwner>(string propName,
                                                                              PropertyOptions options,
@@ -52,12 +52,26 @@ namespace DotX
             PropertyType = propertyType;
             Options = options;
         }
-    }
 
-    [Flags]
-    public enum PropertyOptions
-    {
-        Inherits = 1,
+        public override bool Equals(object obj)
+        {
+            return obj is CompositeObjectProperty prop && Equals(prop); 
+        }
+
+        public bool Equals(CompositeObjectProperty other)
+        {
+            return PropName == other.PropName && PropertyType == other.PropertyType;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(PropName, PropertyType);
+        }
+
+        public override string ToString()
+        {
+            return string.Format("Name {0} for type {1}", PropName, PropertyType);
+        }
     }
 
     internal abstract class TypedObjectProperty<T> : CompositeObjectProperty
@@ -76,6 +90,12 @@ namespace DotX
         public abstract T Coerce(CompositeObject obj, T value);
 
         public abstract void Changed(CompositeObject obj, T oldValue, T newValue);
+    }
+
+    [Flags]
+    public enum PropertyOptions
+    {
+        Inherits = 1,
     }
 
     internal class TypedObjectProperty<TVal, TOwner> : TypedObjectProperty<TVal>

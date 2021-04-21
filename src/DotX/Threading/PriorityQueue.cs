@@ -26,7 +26,7 @@ namespace DotX.Threading
             if(_objectStore.Count == 0)
                 throw new InvalidOperationException();
 
-            var queue = _objectStore.First();
+            var queue = _objectStore.Last();
             var elem = queue.Value.Dequeue();
 
             if(queue.Value.Count == 0)
@@ -42,7 +42,7 @@ namespace DotX.Threading
             if(_objectStore.Count == 0)
                 return false;
 
-            var queue = _objectStore.First();
+            var queue = _objectStore.Last();
 
             var returnValue = queue.Value.TryDequeue(out value);
 
