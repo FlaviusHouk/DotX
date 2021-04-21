@@ -10,9 +10,9 @@ namespace DotX.Controls
         {}
         
         public static readonly CompositeObjectProperty WidthProperty = 
-            TypedObjectProperty<int>.RegisterProperty<Widget>(nameof(Width),
-                                                              PropertyOptions.Inherits,
-                                                              coerceFunc: CoerceWidth);
+            CompositeObjectProperty.RegisterProperty<int, Widget>(nameof(Width),
+                                                                  PropertyOptions.Inherits,
+                                                                  coerceFunc: CoerceWidth);
 
         private static int CoerceWidth(CompositeObject obj, int value)
         {
@@ -20,17 +20,17 @@ namespace DotX.Controls
         }
 
         public static readonly CompositeObjectProperty HeightProperty = 
-            TypedObjectProperty<int>.RegisterProperty<Widget>(nameof(Height),
-                                                              PropertyOptions.Inherits,
-                                                              coerceFunc: CoerceWidth);
+            CompositeObjectProperty.RegisterProperty<int, Widget>(nameof(Height),
+                                                                  PropertyOptions.Inherits,
+                                                                  coerceFunc: CoerceWidth);
 
         public static readonly CompositeObjectProperty BackgroundProperty =
-            TypedObjectProperty<IBrush>.RegisterProperty<Widget>(nameof(Background),
-                                                                 PropertyOptions.Inherits);
+            CompositeObjectProperty.RegisterProperty<IBrush, Widget>(nameof(Background),
+                                                                     PropertyOptions.Inherits);
 
         public static readonly CompositeObjectProperty ForegroundProperty =
-            TypedObjectProperty<IBrush>.RegisterProperty<Widget>(nameof(Foreground),
-                                                                 PropertyOptions.Inherits);
+            CompositeObjectProperty.RegisterProperty<IBrush, Widget>(nameof(Foreground),
+                                                                     PropertyOptions.Inherits);
 
         public Widget LogicalParent { get; internal set; }
         public ICollection<Visual> VisualChildren { get; }

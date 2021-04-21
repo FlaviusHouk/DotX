@@ -9,13 +9,13 @@ namespace DotX.Controls
         {}
 
         public static readonly CompositeObjectProperty ContentProperty = 
-            TypedObjectProperty<Visual>.RegisterProperty<Control>(nameof(Content),
-                                                                  PropertyOptions.Inherits,
-                                                                  changeValueFunc: OnContentPropertyChanged);
+            CompositeObjectProperty.RegisterProperty<Visual, Control>(nameof(Content),
+                                                                      PropertyOptions.Inherits,
+                                                                      changeValueFunc: OnContentPropertyChanged);
 
-        private static void OnContentPropertyChanged(CompositeObject arg1, Visual arg2, Visual arg3)
+        private static void OnContentPropertyChanged(Control control, Visual oldValue, Visual newValue)
         {
-            ((Control)arg1).OnContentChanged(arg2, arg3);
+            control.OnContentChanged(oldValue, newValue);
         }
 
         public Visual Content

@@ -4,6 +4,24 @@ namespace DotX
 {
     public abstract class CompositeObjectProperty
     {
+        public static CompositeObjectProperty RegisterProperty<TVal, TOwner>(string propName,
+                                                                             PropertyOptions options,
+                                                                             TVal defaultValue = default,
+                                                                             Func<TOwner, TVal, TVal> coerceFunc = null,
+                                                                             Action<TOwner, TVal, TVal> changeValueFunc = null)
+            where TOwner : CompositeObject
+        {
+            var prop = new TypedObjectProperty<TVal, TOwner>(propName,
+                                                             defaultValue,
+                                                             options,
+                                                             coerceFunc,
+                                                             changeValueFunc);
+
+            PropertyManager.Instance.RegisterProperty<TOwner>(prop);
+            
+            return prop;
+        }
+
         public string PropName { get; }
         public Type PropertyType { get; }
         public PropertyOptions Options { get; }
@@ -24,31 +42,8 @@ namespace DotX
         Inherits = 1,
     }
 
-    public class TypedObjectProperty<T> : CompositeObjectProperty
+    internal class TypedObjectProperty<T> : CompositeObjectProperty
     {
-        public static TypedObjectProperty<T> RegisterProperty<TOwner>(string propName,
-                                                                      PropertyOptions options,
-                                                                      T defaultValue = default,
-                                                                      Func<CompositeObject, T, T> coerceFunc = null,
-                                                                      Action<CompositeObject, T, T> changeValueFunc = null)
-        {
-            var prop = new TypedObjectProperty<T>(propName,
-                                                  typeof(T),
-                                                  defaultValue,
-                                                  options,
-                                                  coerceFunc,
-                                                  changeValueFunc);
-
-            PropertyManager.Instance.RegisterProperty<TOwner>(prop);
-            
-            return prop;
-        }
-
-        internal static CompositeObjectProperty RegisterProperty<T1>(string v, PropertyOptions inherits, object onFontSizePropertyChanged)
-        {
-            throw new NotImplementedException();
-        }
-
         private readonly Func<CompositeObject, T, T> _coerceFunc;
         private readonly Action<CompositeObject, T, T> _changeValueFunc;
         public T DefaultValue { get; }
@@ -74,6 +69,21 @@ namespace DotX
         public void Changed(CompositeObject obj, T oldValue, T newValue)
         {
             _changeValueFunc?.Invoke(obj, oldValue, newValue);
+        }
+    }
+
+    internal class TypedObjectProperty<TVal, TOwner> : TypedObjectProperty<TVal>
+        where TOwner : CompositeObject
+    {
+        public TypedObjectProperty(string propName,
+                                   TVal defaultValue, 
+                                   PropertyOptions options, 
+                                   Func<TOwner, TVal, TVal> coerceFunc = null, 
+                                   Action<TOwner, TVal, TVal> changeValueFunc = null) : 
+            base(propName, typeof(TOwner), defaultValue, options, 
+                 (o, v) => coerceFunc is null ? v : coerceFunc.Invoke((TOwner)o, v), 
+                 (o, ov, nv) => changeValueFunc?.Invoke((TOwner)o, ov, nv))
+        {
         }
     }
 }

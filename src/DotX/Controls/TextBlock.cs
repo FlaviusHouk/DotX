@@ -17,13 +17,13 @@ namespace DotX.Controls
         }
 
         public static readonly CompositeObjectProperty TextProperty =
-            TypedObjectProperty<string>.RegisterProperty<TextBlock>(nameof(Text),
-                                                                    PropertyOptions.Inherits);
+            CompositeObjectProperty.RegisterProperty<string,TextBlock>(nameof(Text),
+                                                                       PropertyOptions.Inherits);
 
         public static readonly CompositeObjectProperty FontSizeProperty =
-            TypedObjectProperty<int>.RegisterProperty<TextBlock>(nameof(FontSize),
-                                                                 PropertyOptions.Inherits,
-                                                                 changeValueFunc: OnFontSizePropertyChanged);
+            CompositeObjectProperty.RegisterProperty<int, TextBlock>(nameof(FontSize),
+                                                                     PropertyOptions.Inherits,
+                                                                     changeValueFunc: OnFontSizePropertyChanged);
 
         private static void OnFontSizePropertyChanged(CompositeObject obj, int oldValue, int newValue)
         {
@@ -40,31 +40,29 @@ namespace DotX.Controls
         }
 
         public static readonly CompositeObjectProperty FontFamilyProperty =
-            TypedObjectProperty<string>.RegisterProperty<TextBlock>(nameof(FontFamily),
-                                                                    PropertyOptions.Inherits,
-                                                                    changeValueFunc: OnFontFamilyPropertyChanged);
+            CompositeObjectProperty.RegisterProperty<string, TextBlock>(nameof(FontFamily),
+                                                                        PropertyOptions.Inherits,
+                                                                        changeValueFunc: OnFontFamilyPropertyChanged);
 
-        private static void OnFontFamilyPropertyChanged(CompositeObject arg1, string arg2, string arg3)
+        private static void OnFontFamilyPropertyChanged(TextBlock textBlock, string oldValue, string newValue)
         {
-            var textBlock = (TextBlock)arg1;
-
             if(textBlock._font is not null)
                 textBlock._font.Dispose();
 
             textBlock._font = new FontDescription()
             {
-                Family = arg3,
+                Family = newValue,
                 Size = textBlock.FontSize,
             };
         }
 
         public static readonly CompositeObjectProperty FontWeightProperty =
-            TypedObjectProperty<FontWeight>.RegisterProperty<TextBlock>(nameof(FontWeight),
-                                                                        PropertyOptions.Inherits);
+            CompositeObjectProperty.RegisterProperty<FontWeight, TextBlock>(nameof(FontWeight),
+                                                                            PropertyOptions.Inherits);
 
         public static readonly CompositeObjectProperty TextAlignmentProperty =
-            TypedObjectProperty<Alignment>.RegisterProperty<TextBlock>(nameof(TextAlignment),
-                                                                       PropertyOptions.Inherits);
+            CompositeObjectProperty.RegisterProperty<Alignment, TextBlock>(nameof(TextAlignment),
+                                                                           PropertyOptions.Inherits);
 
         private FontDescription _font;
 
