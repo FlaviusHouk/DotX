@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <UsingTask TaskName="ProcessXamlTask" 
+             AssemblyFile="/home/flavius/Programming/dotnet/DotX/src/XAML/DotX.Xaml.MsBuild/bin/Debug/net5.0/DotX.Xaml.MsBuild.dll"/>
+
   <ItemGroup>
     <!-- Include definitions from dxc.xml, which defines the DXCShader item. -->
     <PropertyPageSchema Include="$(MSBuildThisFileDirectory)XAML.xml" />
@@ -15,10 +18,18 @@
 
   <Target Name="XAML"
           Returns="@(XAML->'%(Filename).g.cs')">
+    <PropertyGroup>
+      <NewCSFiles/>
+    </PropertyGroup>
+    
+    <ProcessXamlTask CurrentProject="$(MSBuildProjectFullPath)"
+                     InputFiles="@(XAML)">
+      <Output TaskParameter="FilesToAdd" PropertyName="NewCSFiles"/>
+    </ProcessXamlTask>
+
     <ItemGroup>
-      <Compile Include="@(XAML->'%(Filename).g.cs')"/>
+      <Compile Include="$(NewCSFiles)"/>
     </ItemGroup>
-    <Exec Command="echo 'using System; namespace DotX { class A { public static void Meth() {}}}' > %(XAML.filename).g.cs" />
   </Target>
 
   <ItemGroup>
