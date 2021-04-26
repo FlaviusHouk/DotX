@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <!-- Include definitions from dxc.xml, which defines the DXCShader item. -->
+    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)XAML.xml" />
+    <!-- Hook up DXCShader items to be built by the DXC target. -->
+    <AvailableItemName Include="XAMLDoc">
+      <Targets>XAML</Targets>
+    </AvailableItemName>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <CoreCompileDependsOn>XAML;$(CoreCompileDependsOn)</CoreCompileDependsOn>
+  </PropertyGroup>
+
+  <Target Name="XAML"
+          Returns="@(XAML->'%(Filename).g.cs')">
+    <ItemGroup>
+      <Compile Include="@(XAML->'%(Filename).g.cs')"/>
+    </ItemGroup>
+    <Exec Command="echo 'using System; namespace DotX { class A { public static void Meth() {}}}' > %(XAML.filename).g.cs" />
+  </Target>
+
+  <ItemGroup>
+    <XAML Include="**/*.xaml"/>
+  </ItemGroup>
+</Project>
