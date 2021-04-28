@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using Cairo;
+using DotX.Abstraction;
 
 namespace DotX.Controls
 {
     public abstract class Panel : Widget
     {
         private readonly List<Visual> _children = new();
+
+        [ContentProperty]
         public IReadOnlyList<Visual> Children => _children;
 
         public void AddChild(Visual child)

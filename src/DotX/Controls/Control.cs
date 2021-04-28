@@ -1,5 +1,6 @@
 using System;
 using Cairo;
+using DotX.Abstraction;
 
 namespace DotX.Controls
 {
@@ -18,6 +19,7 @@ namespace DotX.Controls
             control.OnContentChanged(oldValue, newValue);
         }
 
+        [ContentProperty]
         public Visual Content
         {
             get => GetValue<Visual>(ContentProperty);
