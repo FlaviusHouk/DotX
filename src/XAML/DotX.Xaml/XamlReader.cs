@@ -8,15 +8,25 @@ namespace DotX.Xaml
 {
     public class XamlReader : IDisposable
     {
+        public static XamlObject ParseFile(string fileName)
+        {
+            using var file = File.Open(fileName, FileMode.Open, FileAccess.Read);
+            using var fileReader = new StreamReader(file);
+
+            using var xamlReader = new XamlReader(fileReader);
+
+            return xamlReader.Parse(); 
+        }
+
         private readonly XmlReader _reader;
         private readonly Stack<XamlParseContext> _contexts = 
             new Stack<XamlParseContext>();
         
         private XamlParseContext CurrentContext => _contexts.Peek();
 
-        public XamlReader(string xamlFile)
+        public XamlReader(TextReader input)
         {
-            _reader = new XmlTextReader(File.OpenRead(xamlFile));
+            _reader = new XmlTextReader(input);
             _contexts.Push(XamlParseContext.CreateRootContext());
         }
 

@@ -1,0 +1,10 @@
+<Window xmlns="DotX.Controls"
+        Width = "300" Height = "300"
+        Background="1;0;0">
+    <StackPanel>
+        <TextBlock Text="Hello!" Foreground="0;0;0" FontSize="12"
+                   FontFamily = "Liberation Serif" />
+        <TextBlock Text="Second." Foreground="0;0;0" FontSize="15"
+                   FontFamily="Source Code Pro Regular" />
+    </StackPanel>
+</Window>

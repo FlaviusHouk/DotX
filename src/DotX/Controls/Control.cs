@@ -61,7 +61,7 @@ namespace DotX.Controls
         protected override Rectangle MeasureCore(Rectangle size)
         {
             if(!IsVisible || Content is null)
-                new Rectangle(size.X, size.Y, 0, 0);
+                return new Rectangle(size.X, size.Y, 0, 0);
 
             Content.Measure(size);
 
@@ -71,7 +71,7 @@ namespace DotX.Controls
         protected override Rectangle ArrangeCore(Rectangle size)
         {
             if(!IsVisible || Content is null)
-                new Rectangle(size.X, size.Y, 0, 0);
+                return new Rectangle(size.X, size.Y, 0, 0);
 
             Content.Arrange(size);
             

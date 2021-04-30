@@ -25,10 +25,8 @@ namespace DotX.Controls
                                                                      PropertyOptions.Inherits,
                                                                      changeValueFunc: OnFontSizePropertyChanged);
 
-        private static void OnFontSizePropertyChanged(CompositeObject obj, int oldValue, int newValue)
+        private static void OnFontSizePropertyChanged(TextBlock textBlock, int oldValue, int newValue)
         {
-            var textBlock = (TextBlock)obj;
-
             if(textBlock._font is not null)
                 textBlock._font.Dispose();
 
@@ -52,7 +50,7 @@ namespace DotX.Controls
             textBlock._font = new FontDescription()
             {
                 Family = newValue,
-                Size = textBlock.FontSize,
+                Size = (int)(textBlock.FontSize * Pango.Scale.PangoScale),
             };
         }
 

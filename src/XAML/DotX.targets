@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <UsingTask TaskName="ProcessXamlTask" 
-             AssemblyFile="/home/flavius/Programming/dotnet/DotX/src/XAML/DotX.Xaml.MsBuild/bin/Debug/net5.0/DotX.Xaml.MsBuild.dll"/>
+             AssemblyFile="$(MSBuildThisFileDirectory)DotX.Xaml.MsBuild/bin/Debug/net5.0/DotX.Xaml.MsBuild.dll"/>
 
   <ItemGroup>
     <!-- Include definitions from dxc.xml, which defines the DXCShader item. -->
@@ -34,5 +34,9 @@
 
   <ItemGroup>
     <XAML Include="**/*.xaml"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="@(XAML)"/>
   </ItemGroup>
 </Project>

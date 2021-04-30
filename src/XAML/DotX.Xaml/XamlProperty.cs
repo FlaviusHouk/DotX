@@ -10,8 +10,6 @@ namespace DotX.Xaml
 
         public Type PropertyType { get; private set; }
 
-        public object Value { get; private set; }
-
         public XamlProperty(string propName, string rawValue)
         {
             if (string.IsNullOrEmpty(propName))
