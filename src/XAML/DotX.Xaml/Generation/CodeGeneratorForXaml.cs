@@ -1,5 +1,4 @@
 using System.IO;
-using DotX.Abstraction;
 
 namespace DotX.Xaml.Generation
 {
@@ -23,21 +22,9 @@ namespace DotX.Xaml.Generation
             output.WriteLine("\t{");
 
             output.WriteLine(@"
-            
             partial void Initialize() 
             {
-                var fullTypeName = GetType().FullName;
-
-                using var resource = 
-                    GetType().Assembly.GetManifestResourceStream(string.Format(""{0}.xaml"", 
-                                                                               fullTypeName));
-
-                using var resourceReader = new System.IO.StreamReader(resource);
-                using var xamlReader = new DotX.Xaml.XamlReader(resourceReader);
-
-                var thisObj = xamlReader.Parse();
-                var composer = new DotX.Xaml.Generation.ObjectComposer(this, thisObj);
-                composer.Compose();
+                DotX.Xaml.Generation.ObjectComposer.Compose(this);
             }");
 
             output.WriteLine("\t}");

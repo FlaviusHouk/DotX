@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using DotX.Abstraction;
@@ -9,6 +10,23 @@ namespace DotX.Xaml.Generation
 {
     public class ObjectComposer
     {
+        public static void Compose(object objToCompose)
+        {
+            Type objType = objToCompose.GetType();
+            string fullTypeName = objType.FullName;
+
+            using Stream resource = 
+                objType.Assembly.GetManifestResourceStream(string.Format("{0}.xaml", 
+                                                                         fullTypeName));
+
+            using var resourceReader = new System.IO.StreamReader(resource);
+            using var xamlReader = new DotX.Xaml.XamlReader(resourceReader);
+
+            XamlObject thisObj = xamlReader.Parse();
+            var composer = new ObjectComposer(objToCompose, thisObj);
+            composer.Compose();
+        }
+
         private readonly object _target;
         private readonly XamlObject _description;
 
