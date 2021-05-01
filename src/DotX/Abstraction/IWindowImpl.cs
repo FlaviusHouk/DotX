@@ -10,7 +10,7 @@ namespace DotX.Abstraction
 
         void Resize(int width, int height);
         
-        Context CreateContext();
+        Surface WindowSurface { get; }
 
         event RenderRequest Dirty;
         event ResizingDelegate Resizing;

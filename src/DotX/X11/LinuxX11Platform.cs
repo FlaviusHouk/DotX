@@ -58,16 +58,25 @@ namespace DotX.XOrg
 
             try
             {
-                Xlib.XNextEvent(Display, ev);
+                WaitForEvent(d, ev);
 
-                var xevent = Marshal.PtrToStructure<X11.XAnyEvent>(ev);
-
-                HandleEvent(xevent, ev, d);
+                while(Xlib.XPending(Display) > 0)
+                    WaitForEvent(d, ev);
             }
             finally
             {
                 Marshal.FreeHGlobal(ev);
             }
+        }
+
+
+        private void WaitForEvent(Dispatcher d, IntPtr ev)
+        {
+            Xlib.XNextEvent(Display, ev);
+
+            var xevent = Marshal.PtrToStructure<X11.XAnyEvent>(ev);
+
+            HandleEvent(xevent, ev, d);
         }
 
         private void HandleEvent(X11.XAnyEvent xevent, IntPtr ev, Dispatcher d)

@@ -19,6 +19,27 @@ namespace DotX.XOrg
 
         public X11.Window XWindow => _window;
 
+        public Surface WindowSurface
+        {
+            get
+            {
+                if (_cairoSurface is null)
+                {
+                    Xlib.XGetWindowAttributes(_platform.Display,
+                                              _window,
+                                              out var attr);
+
+                    _cairoSurface = new XlibSurface(_platform.Display,
+                                                    new IntPtr((long)(ulong)_window),
+                                                    _visual,
+                                                    (int)attr.width,
+                                                    (int)attr.height);
+                }
+
+                return _cairoSurface;
+            }
+        }
+
         public LinuxX11WindowImpl(LinuxX11Platform platform,
                                   int width,
                                   int height)
@@ -68,24 +89,6 @@ namespace DotX.XOrg
             }
 
             Resizing?.Invoke(width, height);
-        }
-
-        public Context CreateContext()
-        {
-            if (_cairoSurface is null)
-            {
-                Xlib.XGetWindowAttributes(_platform.Display, 
-                                          _window, 
-                                          out var attr);
-
-                _cairoSurface = new XlibSurface(_platform.Display,
-                                                new IntPtr((long)(ulong)_window),
-                                                _visual,
-                                                (int)attr.width,
-                                                (int)attr.height);
-            }
-
-            return new Context(_cairoSurface);
         }
 
         public void Dispose()

@@ -45,7 +45,8 @@ namespace DotX
             while(visual is not Window)
                 visual = visual.VisualParent;
 
-            using Context c = ((Window)visual).WindowImpl.CreateContext();
+            Surface winSurface = ((Window)visual).WindowImpl.WindowSurface;
+            using Context c = new Context(winSurface);
             c.Rectangle(originalVisual.RenderSize);
             c.Clip();
 
