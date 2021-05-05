@@ -21,6 +21,7 @@ namespace DotX.Converters
 
             var parts = str.Split(';');
 
+            //TODO: invariant culture
             if(!double.TryParse(parts[0], out var r) ||
                !double.TryParse(parts[1], out var g) ||
                !double.TryParse(parts[2], out var b))

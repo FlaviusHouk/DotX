@@ -23,6 +23,8 @@ namespace DotX.Controls
 
                 w.LogicalParent = this;
             }
+
+            child.VisualParent = this; //while there are no templates it is ok.
         }
 
         public void RemoveChild(Visual child)
@@ -31,6 +33,8 @@ namespace DotX.Controls
 
             if(child is Widget w)
                 w.LogicalParent = default;
+
+            child.VisualParent = default; //while there are no templates it is ok.
         }
 
         public override void Render(Context context)

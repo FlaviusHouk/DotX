@@ -21,7 +21,7 @@ namespace DotX.Controls
             if(orientation == Orientation.Vertical)
             {
                 x = givenSize.X;
-                y = occupiedSize.Height;
+                y = givenSize.Y + occupiedSize.Height;
                 width = givenSize.Width;
                 height = givenSize.Height - occupiedSize.Height;
                 
@@ -30,7 +30,7 @@ namespace DotX.Controls
             }
             else
             {
-                x = occupiedSize.Width;
+                x = givenSize.X + occupiedSize.Width;
                 y = givenSize.Y;
                 width = givenSize.Width - occupiedSize.Width;
                 height = givenSize.Height;
@@ -104,7 +104,7 @@ namespace DotX.Controls
                 child.IsArrangeDirty |= wasDirty;
 
                 child.Arrange(size);
-                size = GetRestSize(child.DesiredSize, size, Orientation);
+                size = GetRestSize(child.RenderSize, size, Orientation);
             }
 
             return Merge(Children.Select(c => c.RenderSize), Orientation);
