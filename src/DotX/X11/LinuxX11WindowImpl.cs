@@ -49,7 +49,8 @@ namespace DotX.XOrg
             var screen = Xlib.XDefaultScreen(_platform.Display);
             _visual = Xlib.XDefaultVisual(_platform.Display, screen);
             var depth = Xlib.XDefaultDepth(_platform.Display, screen);
-            attributes.background_pixel = Xlib.XWhitePixel(_platform.Display, screen);
+            attributes.background_pixel = 0;
+            attributes.bit_gravity = 10;
 
             _window = Xlib.XCreateWindow(platform.Display,
                                Xlib.XDefaultRootWindow(platform.Display),
@@ -61,7 +62,7 @@ namespace DotX.XOrg
                                depth,
                                1,
                                _visual,
-                               1<<1,
+                               1<<1 | 1<<4,
                                ref attributes);
 
             Xlib.XSelectInput(platform.Display, _window, X11.EventMask.ExposureMask | 
