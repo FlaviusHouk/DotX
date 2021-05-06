@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Cairo;
+using DotX.Extensions;
 
 namespace DotX.Controls
 {
@@ -71,21 +72,25 @@ namespace DotX.Controls
             if(Children.Count < 1 || !IsVisible)
                 return new Rectangle(size.X, size.Y, 0, 0);
 
+            size = size.Subtract(Padding);
+
             var firstChild = Children.First();
             bool wasDirty = firstChild.IsMeasureDirty;
-            firstChild.Measure(size);
-            size = GetRestSize(firstChild.DesiredSize, size, Orientation);
+
+            size = MeasureChild(firstChild, size);
 
             foreach(var child in Children.Skip(1))
             {
                 wasDirty |= child.IsMeasureDirty;
                 child.IsMeasureDirty |= wasDirty;
 
-                child.Measure(size);
-                size = GetRestSize(child.DesiredSize, size, Orientation);
+                size = MeasureChild(child, size);
             }
 
-            return Merge(Children.Select(c => c.DesiredSize), Orientation);
+            return Merge(Children.Select(c => c is Widget w ?
+                                                w.DesiredSize.Add(w.Margin) :
+                                                c.DesiredSize), 
+                                        Orientation).Add(Padding);
         }
 
         protected override Rectangle ArrangeCore(Rectangle size)
@@ -93,21 +98,69 @@ namespace DotX.Controls
             if(Children.Count < 1 || !IsVisible)
                 return new Rectangle(size.X, size.Y, 0,0);
 
+            size = size.Subtract(Padding);
+
             var firstChild = Children.First();
             bool wasDirty = firstChild.IsArrangeDirty;
-            firstChild.Arrange(size);
-            size = GetRestSize(firstChild.RenderSize, size, Orientation);
+
+            size = ArrangeChild(firstChild, size);
 
             foreach(var child in Children.Skip(1))
             {
                 wasDirty |= child.IsArrangeDirty;
                 child.IsArrangeDirty |= wasDirty;
 
-                child.Arrange(size);
-                size = GetRestSize(child.RenderSize, size, Orientation);
+                size = ArrangeChild(child, size);
             }
 
-            return Merge(Children.Select(c => c.RenderSize), Orientation);
+            return Merge(Children.Select(c => c is Widget w ?
+                                                w.RenderSize.Add(w.Margin) : 
+                                                c.RenderSize), 
+                         Orientation).Add(Padding);
+        }
+
+        private Rectangle MeasureChild(Visual child, Rectangle size)
+        {
+            Widget widget = default;
+            Rectangle adjustedSize = size;
+            
+            if(child is Widget)
+            {
+                widget = (Widget)child;
+                adjustedSize = size.Subtract(widget.Margin);
+            }
+
+            child.Measure(adjustedSize);
+            
+            Rectangle desiredSize = child.DesiredSize;
+            if(widget is not null)
+                desiredSize = desiredSize.Add(widget.Margin);
+
+            return GetRestSize(desiredSize, 
+                               size, 
+                               Orientation);
+        }
+
+        private Rectangle ArrangeChild(Visual child, Rectangle size)
+        {
+            Widget widget = default;
+            Rectangle adjustedSize = size;
+            
+            if(child is Widget)
+            {
+                widget = (Widget)child;
+                adjustedSize = size.Subtract(widget.Margin);
+            }
+
+            child.Arrange(adjustedSize);
+            
+            Rectangle renderSize = child.RenderSize;
+            if(widget is not null)
+                renderSize = renderSize.Add(widget.Margin);
+
+            return GetRestSize(renderSize, 
+                               size, 
+                               Orientation);
         }
     }
 }

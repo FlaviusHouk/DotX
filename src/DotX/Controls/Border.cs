@@ -30,8 +30,8 @@ namespace DotX.Controls
 
             return new Rectangle(size.X, 
                                  size.Y, 
-                                 contentSize.Width + BorderThickness,
-                                 contentSize.Height + BorderThickness);
+                                 contentSize.Width + BorderThickness * 2,
+                                 contentSize.Height + BorderThickness * 2);
         }
 
         protected override Rectangle ArrangeCore(Rectangle size)
@@ -41,8 +41,8 @@ namespace DotX.Controls
 
             return new Rectangle(size.X, 
                                  size.Y, 
-                                 contentSize.Width + BorderThickness,
-                                 contentSize.Height + BorderThickness);
+                                 contentSize.Width + BorderThickness * 2,
+                                 contentSize.Height + BorderThickness * 2);
         }
 
         public override void Render(Context context)
@@ -66,8 +66,8 @@ namespace DotX.Controls
         {
             double x = size.X + BorderThickness, 
                    y = size.Y + BorderThickness, 
-                   width = size.Width - BorderThickness, 
-                   height = size.Height - BorderThickness;
+                   width = size.Width - BorderThickness * 2, 
+                   height = size.Height - BorderThickness * 2;
 
             if(width < 0)
                 width = 0;

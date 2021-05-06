@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Cairo;
 using DotX.Brush;
+using DotX.Data;
+using DotX.Extensions;
 
 namespace DotX.Controls
 {
@@ -37,6 +39,25 @@ namespace DotX.Controls
                                                                    PropertyOptions.Inherits,
                                                                    true);
 
+        public static readonly CompositeObjectProperty MarginProperty =
+            CompositeObjectProperty.RegisterProperty<Margin, Widget>(nameof(Margin),
+                                                                     PropertyOptions.Inherits,
+                                                                     new Margin(),
+                                                                     changeValueFunc: (w, o, n) => 
+                                                                     {
+                                                                         w.InvalidateMeasure();
+                                                                         w.Invalidate();
+                                                                     });
+
+        public static readonly CompositeObjectProperty PaddingProperty =
+            CompositeObjectProperty.RegisterProperty<Margin, Widget>(nameof(Padding),
+                                                                     PropertyOptions.Inherits,
+                                                                     new Margin(),
+                                                                     changeValueFunc: (w, o, n) => 
+                                                                     {
+                                                                         w.Invalidate();
+                                                                     });
+
         public Widget LogicalParent { get; internal set; }
         public ICollection<Visual> VisualChildren { get; }
 
@@ -70,12 +91,24 @@ namespace DotX.Controls
             set => SetValue(IsVisibleProperty, value);
         }
 
+        public Margin Margin
+        {
+            get => GetValue<Margin>(MarginProperty);
+            set => SetValue(MarginProperty, value);
+        }
+
+        public Margin Padding
+        {
+            get => GetValue<Margin>(PaddingProperty);
+            set => SetValue(PaddingProperty, value);
+        }
+
         protected override Rectangle ArrangeCore(Rectangle size)
         {
             if(!IsVisible)
                 new Rectangle();
 
-            return size;
+            return size.Subtract(Padding);
         }
 
         protected override Rectangle MeasureCore(Rectangle size)
@@ -83,12 +116,21 @@ namespace DotX.Controls
             if(!IsVisible)
                 new Rectangle();
 
-            return size;
+            return size.Subtract(Padding);
         }
 
         public override void Render(Context context)
         {
-            Background?.Render(context, RenderSize.Width, RenderSize.Height);
+            if(Background is null)
+                return;
+
+            context.Save();
+
+            Background.ApplyTo(context);
+            context.Rectangle(RenderSize);
+            context.Fill();
+
+            context.Restore();
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using Cairo;
 using DotX.Abstraction;
+using DotX.Extensions;
 
 namespace DotX.Controls
 {
@@ -63,9 +64,21 @@ namespace DotX.Controls
             if(!IsVisible || Content is null)
                 return new Rectangle(size.X, size.Y, 0, 0);
 
-            Content.Measure(size);
+            Rectangle adjustedSize = size.Subtract(Padding);
+            Widget w = default;
+            if(Content is Widget)
+            {
+                w = (Widget)Content;
+                adjustedSize = adjustedSize.Subtract(w.Margin);
+            }
 
-            return Content.DesiredSize;
+            Content.Measure(adjustedSize);
+
+            Rectangle desiredSize = Content.DesiredSize.Add(Padding);
+            if(w is not null)
+                desiredSize = desiredSize.Add(w.Margin);
+
+            return desiredSize;
         }
 
         protected override Rectangle ArrangeCore(Rectangle size)
@@ -73,9 +86,21 @@ namespace DotX.Controls
             if(!IsVisible || Content is null)
                 return new Rectangle(size.X, size.Y, 0, 0);
 
-            Content.Arrange(size);
+            Rectangle adjustedSize = size.Subtract(Padding);
+            Widget w = default;
+            if(Content is Widget)
+            {
+                w = (Widget)Content;
+                adjustedSize = adjustedSize.Subtract(w.Margin);
+            }
+
+            Content.Arrange(adjustedSize);
+
+            Rectangle renderSize = Content.RenderSize.Add(Padding);
+            if(w is not null)
+                renderSize = renderSize.Add(w.Margin);
             
-            return Content.RenderSize;
+            return renderSize;
         }
     }
 }

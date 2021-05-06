@@ -102,6 +102,8 @@ namespace DotX.Controls
             
             pangoLayout.SetText(Text);
             Foreground.ApplyTo(context);
+            context.MoveTo(RenderSize.X + Padding.Left, 
+                           RenderSize.Y + Padding.Top);
 
             pangoLayout.FontDescription = _font;
             pangoLayout.Alignment = TextAlignment;
@@ -123,7 +125,10 @@ namespace DotX.Controls
             layout.SetText(Text);
             layout.GetSize(out int width, out int height);
             
-            return new Cairo.Rectangle(size.X, size.Y, size.Width, height / Pango.Scale.PangoScale);
+            return new Cairo.Rectangle(size.X, 
+                                       size.Y, 
+                                       size.Width, 
+                                       height / Pango.Scale.PangoScale + Padding.Top + Padding.Bottom);
         }
 
         protected override Cairo.Rectangle ArrangeCore(Cairo.Rectangle size)
