@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using DotX.Abstraction;
 using DotX.Controls;
 using DotX.Threading;
@@ -24,6 +26,14 @@ namespace DotX
         {
             Platform = GetPlatform();
             CurrentApp = this;
+            var converters = AppDomain.CurrentDomain.GetAssemblies()
+                                                    .SelectMany(ass => ass.GetTypes()
+                                                                          .Where(t => t.GetInterface(nameof(IValueConverter)) is not null))
+                                                    .ToDictionary(t => t.GetCustomAttribute<ConverterForTypeAttribute>().TargetType,
+                                                                       t => (IValueConverter)Activator.CreateInstance(t));
+
+            foreach(var converter in converters)
+                Converters.Converters.RegisterConverter(converter.Key, converter.Value);
         }
 
         public void Run()
