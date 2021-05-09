@@ -33,7 +33,7 @@ namespace DotX
                 originalProps = originalProps.Concat(baseTypeProps);
             }
 
-            return originalProps;
+            return originalProps.Distinct();
         }
 
         public CompositeObjectProperty GetVirtualProperty(Type t, CompositeObjectProperty p)
@@ -41,16 +41,7 @@ namespace DotX
             if(!IsPropertyAvailable(t, p))
                 throw new KeyNotFoundException();
 
-            var props = GetProperties(t).Where(prop => prop.PropName == p.PropName).ToArray();
-
-            CompositeObjectProperty virtProp = default;
-            while (virtProp is null)
-            {
-                virtProp = props.FirstOrDefault(prop => prop.PropertyType == t);
-                t = t.BaseType;
-            }
-
-            return virtProp;
+            return GetProperties(t).First(prop => prop.PropName == p.PropName);
         }
 
         public void RegisterProperty<TOwner>(CompositeObjectProperty property)

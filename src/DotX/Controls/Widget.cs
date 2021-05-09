@@ -1,8 +1,11 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Cairo;
 using DotX.Brush;
 using DotX.Data;
 using DotX.Extensions;
+using DotX.Styling;
 
 namespace DotX.Controls
 {
@@ -103,6 +106,14 @@ namespace DotX.Controls
             set => SetValue(PaddingProperty, value);
         }
 
+        public StylesCollection Styles
+        {
+            get;
+        } = new StylesCollection();
+
+        public IList<string> Classes { get; } =
+            new List<string>();
+
         protected override Rectangle ArrangeCore(Rectangle size)
         {
             if(!IsVisible)
@@ -131,6 +142,74 @@ namespace DotX.Controls
             context.Fill();
 
             context.Restore();
+        }
+
+        public void ApplyStyles()
+        {
+            var styles = GetStylesForChild(this);
+
+            foreach(var s in styles.Reverse()
+                                   .Where(ps => !_appliedStyles.Any(applied => applied.Style == ps.Style))
+                                   .Where(ps => ps.Style.TryAttach(this)))
+            {
+                _appliedStyles.Add(s);
+            }
+
+            ApplyStylesForChildren();
+        }
+
+        protected virtual void ApplyStylesForChildren()
+        {}
+
+        protected void UnsetStyles(CompositeObject child)
+        {
+            foreach(var s in _appliedStyles.Reverse())
+                s.Style.Detach(child);
+        }
+
+        private IReadOnlyCollection<PriorityStyle> GetStylesForChild(CompositeObject obj)
+        {
+            int i = 0;
+            var styles = Styles.Where(s => s.Selector.Matches(obj))
+                               .Select(s => new PriorityStyle(s, i));
+
+            var currentObject = VisualParent;
+
+            while(currentObject is not null)
+            {
+                i++;
+
+                if(currentObject is Widget w)
+                    styles = styles.Concat(w.Styles.Where(s => s.Selector.Matches(obj))
+                                                   .Select(s => new PriorityStyle(s, i)));
+
+                currentObject = currentObject.VisualParent;
+            }
+
+            return styles.ToArray();
+        }
+
+        private SortedSet<PriorityStyle> _appliedStyles = 
+            new SortedSet<PriorityStyle>();
+
+        private class PriorityStyle : IComparable
+        {
+            public Style Style { get; }
+            public int Priority { get; }
+
+            public PriorityStyle(Style style, int priority)
+            {
+                Style = style;
+                Priority = priority;
+            }
+
+            public int CompareTo(object obj)
+            {
+                if (obj is not PriorityStyle p)
+                    throw new ArgumentException();
+
+                return Priority - p.Priority;
+            }
         }
     }
 }

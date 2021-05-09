@@ -1,9 +1,38 @@
 using System;
+using DotX.Abstraction;
 
 namespace DotX
 {
-    public abstract class CompositeObjectProperty : IEquatable<CompositeObjectProperty>
+    public interface IPropertyMetadata<T> : IPropertyMetadata
     {
+        T DefaultValue { get; }
+    }
+
+    internal class ChangeHandler<TValue> : IChangeHandler
+    {
+        private readonly IPropertyMetadata _metadata;
+        private readonly CompositeObject _obj;
+        private readonly TValue _oldValue;
+
+        public ChangeHandler(CompositeObject obj,
+                             TValue oldValue,
+                             IPropertyMetadata metadata)
+        {
+            _obj = obj;
+            _oldValue = oldValue;
+            _metadata = metadata;
+        }
+
+        public void Changed(IPropertyValue value)
+        {
+            _metadata.Changed<TValue>(_obj, _oldValue, value.GetValue<TValue>());
+        }
+    }
+
+    public class CompositeObjectProperty : IEquatable<CompositeObjectProperty>
+    {
+        public static IPropertyValue UnsetValue => ValueStorage.UnsetObject;
+
         public static CompositeObjectProperty RegisterProperty<TVal, TOwner>(string propName,
                                                                              PropertyOptions options,
                                                                              TVal defaultValue = default,
@@ -11,11 +40,13 @@ namespace DotX
                                                                              Action<TOwner, TVal, TVal> changeValueFunc = default)
             where TOwner : CompositeObject
         {
-            var prop = new TypedObjectProperty<TVal, TOwner>(propName,
-                                                             defaultValue,
-                                                             options,
-                                                             coerceFunc,
-                                                             changeValueFunc);
+            var prop = 
+                new CompositeObjectProperty(propName,
+                                            typeof(TVal),
+                                            options,
+                                            new PropertyMetadata<TOwner, TVal>(defaultValue,
+                                                                               coerceFunc,
+                                                                               changeValueFunc));
 
             PropertyManager.Instance.RegisterProperty<TOwner>(prop);
             
@@ -28,14 +59,16 @@ namespace DotX
                                                           Action<TOwner, TVal, TVal> changeValueFunc = default)
             where TOwner : CompositeObject
         {
-            if(prop is not TypedObjectProperty<TVal>)
+            if(prop.Metadata is not IPropertyMetadata<TVal>)
                 throw new InvalidOperationException("Cannot override property type.");
 
-            var overridenProp = new TypedObjectProperty<TVal, TOwner>(prop.PropName,
-                                                                      value,
-                                                                      prop.Options,
-                                                                      coerceFunc,
-                                                                      changeValueFunc);
+            var overridenProp = 
+                new CompositeObjectProperty(prop.PropName,
+                                            prop.PropertyType,
+                                            prop.Options,
+                                            new PropertyMetadata<TOwner, TVal>(value,
+                                                                               coerceFunc,
+                                                                               changeValueFunc));
 
             PropertyManager.Instance.RegisterProperty<TOwner>(overridenProp);
         }
@@ -43,14 +76,17 @@ namespace DotX
         public string PropName { get; }
         public Type PropertyType { get; }
         public PropertyOptions Options { get; }
+        public IPropertyMetadata Metadata { get; }
 
         protected CompositeObjectProperty(string propName,
                                           Type propertyType,
-                                          PropertyOptions options)
+                                          PropertyOptions options,
+                                          IPropertyMetadata metadata)
         {
             PropName = propName;
             PropertyType = propertyType;
             Options = options;
+            Metadata = metadata;
         }
 
         public override bool Equals(object obj)
@@ -60,7 +96,8 @@ namespace DotX
 
         public bool Equals(CompositeObjectProperty other)
         {
-            return PropName == other.PropName && PropertyType == other.PropertyType;
+            return PropName == other.PropName && 
+                   PropertyType == other.PropertyType;
         }
 
         public override int GetHashCode()
@@ -71,57 +108,6 @@ namespace DotX
         public override string ToString()
         {
             return string.Format("Name {0} for type {1}", PropName, PropertyType);
-        }
-    }
-
-    internal abstract class TypedObjectProperty<T> : CompositeObjectProperty
-    {
-        public T DefaultValue { get; }
-
-        protected TypedObjectProperty(string propName,
-                                      Type propertyType,
-                                      T defaultValue,
-                                      PropertyOptions options) : 
-            base(propName, propertyType, options)
-        {
-            DefaultValue = defaultValue;
-        }
-
-        public abstract T Coerce(CompositeObject obj, T value);
-
-        public abstract void Changed(CompositeObject obj, T oldValue, T newValue);
-    }
-
-    [Flags]
-    public enum PropertyOptions
-    {
-        Inherits = 1,
-    }
-
-    internal class TypedObjectProperty<TVal, TOwner> : TypedObjectProperty<TVal>
-        where TOwner : CompositeObject
-    {
-        private readonly Func<TOwner, TVal, TVal> _coerceFunc;
-        private readonly Action<TOwner, TVal, TVal> _changeValueFunc;
-        public TypedObjectProperty(string propName,
-                                   TVal defaultValue, 
-                                   PropertyOptions options, 
-                                   Func<TOwner, TVal, TVal> coerceFunc = null, 
-                                   Action<TOwner, TVal, TVal> changeValueFunc = null) : 
-            base(propName, typeof(TOwner), defaultValue, options)
-        {
-            _coerceFunc = coerceFunc;
-            _changeValueFunc = changeValueFunc;
-        }
-
-        public override TVal Coerce(CompositeObject obj, TVal value)
-        {
-            return _coerceFunc is null ? value : _coerceFunc((TOwner)obj, value);
-        }
-
-        public override void Changed(CompositeObject obj, TVal oldValue, TVal newValue)
-        {
-            _changeValueFunc?.Invoke((TOwner)obj, oldValue, newValue);
         }
     }
 }

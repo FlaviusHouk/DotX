@@ -46,6 +46,13 @@ namespace DotX.Xaml
                         break;
                     
                     case XmlNodeType.EndElement:
+                        if(CurrentContext.CurrentProperty is not null)
+                        {
+                            CurrentContext.CurrentObject.AddProperty(CurrentContext.CurrentProperty);
+                            CurrentContext.CurrentProperty = default;
+                            break;
+                        }
+
                         ExitScope();
                         break;
                 }
@@ -58,13 +65,23 @@ namespace DotX.Xaml
         {
             XamlParseContext parentContext = CurrentContext;
             bool createNewScope = !_reader.IsEmptyElement;
+            string elementName = _reader.Name;
             
+            if(elementName.Contains('.'))
+            {
+                string[] parts = elementName.Split('.', StringSplitOptions.RemoveEmptyEntries);
+
+                if(parts.Length > 2)
+                    throw new Exception();
+
+                CurrentContext.CurrentProperty = new FullXamlProperty(parts[1]);
+                return null;
+            }
+
             if(createNewScope)
                 EnterScope();
 
             var attributes = new Dictionary<string, string>();
-
-            string elementName = _reader.Name;
 
             if(_reader.HasAttributes)
             {
@@ -78,20 +95,29 @@ namespace DotX.Xaml
 
                 AddNamespaces(attributes);                
             }
-            
+
             Type objType = CurrentContext.LookupObjectByName(elementName);
+
             var obj = new XamlObject(objType);            
 
             foreach(var attr in attributes)
             {
-                var prop = new XamlProperty(attr.Key, attr.Value);
+                var prop = new InlineXamlProperty(attr.Key, attr.Value);
                 obj.AddProperty(prop);
             }
             
             if(createNewScope)
                 CurrentContext.CurrentObject = obj;
 
-            parentContext.CurrentObject?.AddToContent(obj);
+            if(parentContext.CurrentProperty is not null &&
+               parentContext.CurrentProperty is FullXamlProperty p)
+            {
+                p.AddChild(obj);
+            }
+            else
+            {
+                parentContext.CurrentObject?.AddToContent(obj);
+            }
 
             return obj;
         }

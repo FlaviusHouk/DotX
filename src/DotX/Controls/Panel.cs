@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Cairo;
 using DotX.Abstraction;
 
@@ -16,15 +17,16 @@ namespace DotX.Controls
         {
             _children.Add(child);
             
+            child.VisualParent = this; //while there are no templates it is ok.)
+
             if(child is Widget w)
             {
                 if(w.LogicalParent is not null)
                     throw new InvalidOperationException("Cannot add child. Already has a parent.");
 
                 w.LogicalParent = this;
+                w.ApplyStyles();
             }
-
-            child.VisualParent = this; //while there are no templates it is ok.
         }
 
         public void RemoveChild(Visual child)
@@ -58,6 +60,12 @@ namespace DotX.Controls
 
                 context.Restore();
             }
+        }
+
+        protected override void ApplyStylesForChildren()
+        {
+            foreach(var child in Children.OfType<Widget>())
+                child.ApplyStyles();
         }
     }
 }

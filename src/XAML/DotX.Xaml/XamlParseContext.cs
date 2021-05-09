@@ -19,6 +19,8 @@ namespace DotX.Xaml
 
         public XamlObject CurrentObject { get; set; }
 
+        public XamlProperty CurrentProperty { get; set; }
+
         public XamlParseContext(XamlParseContext parentContext)
         {
             _parent = parentContext;

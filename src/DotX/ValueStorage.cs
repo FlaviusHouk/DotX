@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DotX.Abstraction;
 
 namespace DotX
 {
@@ -10,8 +11,7 @@ namespace DotX
 
         public static ValueStorage Storage => _storage.Value;
 
-        private interface IPropertyValue 
-        {}
+        public static IPropertyValue UnsetObject => UnsetValue.Value;
 
         private class UnsetValue : IPropertyValue
         {
@@ -22,17 +22,21 @@ namespace DotX
 
             private UnsetValue()
             {}
+
+            public T GetValue<T>()
+            {
+                throw new NotSupportedException();
+            }
+
+            public T SetValue<T>(T value)
+            {
+                throw new NotSupportedException();
+            }
+
+            public bool Is<T>() => false;
         }
         
-
-        private interface IPropertyValue<T> : IPropertyValue
-        {
-            T GetValue();    
-
-            T SetValue(T value);        
-        }
-
-        private class PropertyValue<T> : IPropertyValue<T>
+        private class PropertyValue<T> : IPropertyValue
         {
             private T _value;
 
@@ -41,16 +45,32 @@ namespace DotX
                 _value = value;
             }
 
-            public T GetValue()
+            public TVal GetValue<TVal>()
             {
-                return _value;
+                if(_value is TVal val)
+                    return val;
+
+                throw new InvalidCastException();
             }
 
-            public T SetValue(T value)
+            public bool Is<TVal>()
             {
-                var oldVal = _value;
-                _value = value;
-                return oldVal;
+                return _value is TVal;
+            }
+
+            public TVal SetValue<TVal>(TVal value)
+            {
+                if(value is not T val)
+                    throw new InvalidCastException();
+                
+                T oldValue = _value;
+
+                _value = val;
+
+                if(oldValue is not TVal old)
+                    throw new InvalidCastException();
+
+                return old;
             }
         }
 
@@ -71,10 +91,14 @@ namespace DotX
         {
             var propValue = _valueStorage[owner][prop];
             
-            if(propValue is IPropertyValue<T> typedValue)
-                return typedValue.GetValue();
-            else if (prop is TypedObjectProperty<T> typedProp)
-                return typedProp.DefaultValue;
+            if(typeof(T) == typeof(IPropertyValue) &&
+               propValue is T val)
+               return val;
+
+            if(propValue.Is<T>())
+                return propValue.GetValue<T>();
+            else if (prop.Metadata is IPropertyMetadata<T> typedMetadata)
+                return typedMetadata.DefaultValue;
             else
                 return default;
         }
@@ -90,23 +114,38 @@ namespace DotX
                 _valueStorage.Add(owner, props);
             }
 
+            if(value is IPropertyValue val)
+            {
+                IChangeHandler handler = prop.Metadata.InitiateChange(owner, prop);
+                props[prop] = val;
+                handler.Changed(val);
+
+                return;
+            }
+
             if(!props.TryGetValue(prop, out var propValue))
             {
                 props.Add(prop, new PropertyValue<T>(value));
                 return;
             }
 
-            var typedProp = prop as TypedObjectProperty<T>;
-            if(typedProp is not null)
-                value = typedProp.Coerce(owner, value);
+            value = prop.Metadata.Coerce(owner, value);
 
-            T oldValue = default;
-            if(prop is IPropertyValue<T> typedValue)
-                oldValue = typedValue.SetValue(value);
-            else
-                props[prop] = new PropertyValue<T>(value);
+            if(propValue is UnsetValue)
+            {
+                propValue = new PropertyValue<T>(value);
+                props[prop] = propValue;
+            }
 
-            typedProp?.Changed(owner, oldValue, value);
+            T oldValue = propValue.SetValue(value);
+
+            prop.Metadata.Changed(owner, oldValue, value);
+        }
+
+        public bool IsSet(CompositeObject obj, 
+                          CompositeObjectProperty prop)
+        {
+            return _valueStorage[obj][prop] is not UnsetValue;
         }
     }
 }

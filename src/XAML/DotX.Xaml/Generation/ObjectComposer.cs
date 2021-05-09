@@ -30,38 +30,31 @@ namespace DotX.Xaml.Generation
         private readonly object _target;
         private readonly XamlObject _description;
 
-        private readonly Dictionary<Type, IValueConverter> _converters;
-
         public ObjectComposer(object target, 
                               XamlObject description)
         {
             _target = target;
             _description = description;
 
-            _converters = AppDomain.CurrentDomain.GetAssemblies()
-                                                 .SelectMany(ass => ass.GetTypes()
-                                                                       .Where(t => t.GetInterface(nameof(IValueConverter)) is not null))
-                                                 .ToDictionary(t => t.GetCustomAttribute<ConverterForTypeAttribute>().TargetType,
-                                                               t => (IValueConverter)Activator.CreateInstance(t));
+            Converters.Converters.RegisterConverter(typeof(IPropertyValue), new PropertyValueConverter());
         }
 
         public void Compose()
         {
-            SetProperties(_target, _description.Properties, _converters);
+            SetProperties(_target, _description.Properties);
 
-            var childObjects = _description.Children.Select(c => ProcessObject(c, _converters)).ToArray();
+            var childObjects = _description.Children.Select(c => ProcessObject(c)).ToArray();
 
             AssignContent(_target, childObjects);
         }
 
-        private object ProcessObject(XamlObject obj,
-                                     IDictionary<Type, IValueConverter> converters)
+        private object ProcessObject(XamlObject obj)
         {
             object instance = Activator.CreateInstance(obj.ObjType);
 
-            SetProperties(instance, obj.Properties, converters);
+            SetProperties(instance, obj.Properties);
 
-            var childObjects = obj.Children.Select(c => ProcessObject(c, converters)).ToArray();
+            var childObjects = obj.Children.Select(c => ProcessObject(c)).ToArray();
 
             AssignContent(instance, childObjects);
 
@@ -69,24 +62,59 @@ namespace DotX.Xaml.Generation
         }
 
         private void SetProperties(object target,
-                                   IEnumerable<XamlProperty> props,
-                                   IDictionary<Type, IValueConverter> converters)
+                                   IEnumerable<XamlProperty> props)
         {
             foreach(var prop in props)
             {
-                if(converters.TryGetValue(prop.PropertyType, out var converter))
-                {
-                    object val = converter.Convert(prop.RawValue, prop.PropertyType);
+                var inlineProp = prop as InlineXamlProperty;
+                var fullProp = prop as FullXamlProperty;
 
-                    target.GetType()
-                          .GetProperty(prop.PropertyName)
-                          .SetValue(target, val);
+                if(Converters.Converters.TryGetConverterForType(prop.PropertyType, out var converter) &&
+                   inlineProp is not null)
+                {
+                    object val = converter.Convert(inlineProp.RawValue, prop.PropertyType);
+                    PropertyInfo clrProp = target.GetType().GetProperty(prop.PropertyName);
+                    
+                    if(clrProp.CanWrite)
+                    {
+                        clrProp.SetValue(target, val);
+                    }
+                    else if(prop.PropertyType.GetInterfaces().Any(i => i.Name.StartsWith("ICollection")) &&
+                            val is IEnumerable<object> enumerable)
+                    {
+                        var collection = clrProp.GetValue(target);
+                        var methodToAdd = collection.GetType().GetMethod(nameof(ICollection<object>.Add));
+
+                        foreach(var child in enumerable)
+                            methodToAdd.Invoke(collection, new object[] { child });
+                    }
                 }
-                else if(prop.PropertyType == typeof(string))
+                else if(prop.PropertyType == typeof(string) &&
+                        inlineProp is not null)
                 {
                     target.GetType()
                           .GetProperty(prop.PropertyName)
-                          .SetValue(target, prop.RawValue);
+                          .SetValue(target, inlineProp.RawValue);
+                }
+                else if (fullProp is not null)
+                {
+                    var clrProp = target.GetType()
+                                        .GetProperty(prop.PropertyName);
+
+                    var children = fullProp.Children.Select(c => ProcessObject(c))
+                                                    .ToArray();
+                    if(clrProp.CanWrite)
+                    {
+                        clrProp.SetValue(target, children);
+                    }
+                    else
+                    {
+                        var collection = clrProp.GetValue(target);
+                        var methodToAdd = collection.GetType().GetMethod(nameof(ICollection<object>.Add));
+
+                        foreach(var child in children)
+                            methodToAdd.Invoke(collection, new object[] { child });
+                    }  
                 }
                 else
                 {

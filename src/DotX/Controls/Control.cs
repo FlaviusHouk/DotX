@@ -53,7 +53,10 @@ namespace DotX.Controls
             newValue.VisualParent = this;
 
             if(newValue is Widget newWidget)
-                newWidget.LogicalParent = null;
+            {
+                newWidget.LogicalParent = this;
+                newWidget.ApplyStyles();
+            }
 
             InvalidateMeasure();
             Invalidate();
@@ -101,6 +104,11 @@ namespace DotX.Controls
                 renderSize = renderSize.Add(w.Margin);
             
             return renderSize;
+        }
+
+        protected override void ApplyStylesForChildren()
+        {
+            (Content as Widget)?.ApplyStyles();
         }
     }
 }

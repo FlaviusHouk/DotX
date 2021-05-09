@@ -20,6 +20,9 @@ namespace DotX.Xaml
 
         public XamlObject(Type objType)
         {
+            if(objType is null)
+                throw new ArgumentNullException();
+
             ObjType = objType;
         }
 

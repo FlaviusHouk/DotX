@@ -74,9 +74,9 @@ namespace DotX.Xaml.Generation
                 output.Write($"{objName}.{prop.PropertyName} = ");
                 var converter = converters[prop.PropertyType];
 
-                if(prop.PropertyType.IsPrimitive)
+                if(prop.PropertyType.IsPrimitive && prop is InlineXamlProperty ixp)
                 {
-                    object val = converter.Convert(prop.RawValue, prop.PropertyType);
+                    object val = converter.Convert(ixp.RawValue, prop.PropertyType);
 
                     output.Write($"{val.ToString()};");
                 }
