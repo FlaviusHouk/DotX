@@ -1,3 +1,4 @@
+using System;
 using Cairo;
 using DotX.Abstraction;
 
@@ -11,6 +12,8 @@ namespace DotX.Controls
                                                                    false);
         }
 
+        public event Action<Window> Closed;
+
         public IWindowImpl WindowImpl { get; }
 
         public Window()
@@ -19,6 +22,18 @@ namespace DotX.Controls
                                                                       Height);
             WindowImpl.Dirty += WindowDirty;
             WindowImpl.Resizing += Resizing;
+            WindowImpl.Closed+= OnWindowClosed;
+
+            Application.AddWindow(this);
+        }
+
+        private void OnWindowClosed()
+        {
+            WindowImpl.Dirty -= WindowDirty;
+            WindowImpl.Resizing -= Resizing;
+            WindowImpl.Closed -= OnWindowClosed;
+
+            Closed?.Invoke(this);
         }
 
         private void Resizing(int width, int height)
@@ -57,6 +72,11 @@ namespace DotX.Controls
             base.ArrangeCore(size);
 
             return size;
+        }
+
+        public void Close()
+        {
+            WindowImpl.Close();
         }
     }
 }

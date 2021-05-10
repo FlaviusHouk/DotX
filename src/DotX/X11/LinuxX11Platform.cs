@@ -7,15 +7,32 @@ using Mono.Unix.Native;
 using System.Threading;
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace DotX.XOrg
 {
     public class LinuxX11Platform : IPlatform
     {
-        private readonly List<LinuxX11WindowImpl> _windows = 
+        [DllImport("libX11.so.6")]
+        public static extern X11.Atom XInternAtom(IntPtr display, string name, bool only_if_exists);
+
+
+        [DllImport("libX11.so.6")]
+        public static extern String XGetAtomName(IntPtr display, X11.Atom atom);
+
+        private readonly Lazy<X11.Atom> _deleteProtocolAtomProvider;
+        private X11.Atom WM_DELETE_PROTOCOL => _deleteProtocolAtomProvider.Value;
+
+        private X11.Atom WM_PROTOCOL => XInternAtom (Display, "WM_PROTOCOLS", false);
+
+        private readonly IList<LinuxX11WindowImpl> _windows =
             new List<LinuxX11WindowImpl>();
 
         public IntPtr Display { get; } 
+
+        public event Action<WindowEventArgs> WindowCreated;
+
+        public event Action<WindowEventArgs> WindowClosed;
         
         public LinuxX11Platform()
         {
@@ -23,6 +40,8 @@ namespace DotX.XOrg
 
             Xlib.XSetErrorHandler(OnError);
             Dispatcher.CurrentDispatcher.SetWaitFunc(ListenToEvents);
+            _deleteProtocolAtomProvider =
+                new Lazy<X11.Atom>(() => XInternAtom(Display, "WM_DELETE_WINDOW", false));
         }
 
         private int OnError(IntPtr display, ref X11.XErrorEvent ev)
@@ -48,6 +67,9 @@ namespace DotX.XOrg
                                               height == 0 ? 1 : height);
 
             _windows.Add(wind);
+            XSetWMProtocols(wind);
+            WindowCreated?.Invoke(new WindowEventArgs(wind));
+
             return wind;
         }
 
@@ -100,7 +122,33 @@ namespace DotX.XOrg
                     var configuraEvent = Marshal.PtrToStructure<X11.XConfigureRequestEvent>(ev);
                     HandleConfigureEvent(configuraEvent, d);
                     break;
+
+                case (int)X11.Event.DestroyNotify:
+                    var destroyEvent = Marshal.PtrToStructure<X11.XDestroyWindowEvent>(ev);
+                    HandleDestroyEvent(destroyEvent, d);
+                    break;
+
+                case (int)X11.Event.ClientMessage:
+                    var clientMessage = Marshal.PtrToStructure<X11.XClientMessageEvent>(ev);
+                    HandleClientMessage(clientMessage, d);
+                    break;
             }
+        }
+
+        private void HandleClientMessage(X11.XClientMessageEvent clientMessage, Dispatcher d)
+        {
+            if(clientMessage.message_type == WM_PROTOCOL)
+            {
+                //It might not work with other Window Managers then
+                //Openbox. Maybe it WM_DELETE_PROTOCOL should be also
+                //checked in clientMessage.data.
+                d.Invoke(() => DestroyWindow(clientMessage.window));
+            }
+        }
+
+        private void HandleDestroyEvent(X11.XDestroyWindowEvent destroyEvent, Dispatcher d)
+        {
+            d.Invoke(() => DestroyWindow(destroyEvent.window));
         }
 
         private void HandleConfigureEvent(X11.XConfigureRequestEvent configuraEvent, Dispatcher d)
@@ -129,6 +177,43 @@ namespace DotX.XOrg
                                                      exposeEvent.width,
                                                      exposeEvent.height));
             });
+        }
+
+        private void DestroyWindow(X11.Window xWindow)
+        {
+            var window = _windows.First(w => w.XWindow == xWindow);
+            window.Close();
+
+            WindowClosed?.Invoke(new WindowEventArgs(window));
+        }
+
+        private void XSetWMProtocols(LinuxX11WindowImpl window)
+        {
+            GCHandle valueHandle = default;
+            try
+            {
+                var atom = (ulong)WM_DELETE_PROTOCOL;
+                valueHandle = GCHandle.Alloc(atom, GCHandleType.Pinned);
+                
+                int res = Xlib.XChangeProperty (Display, 
+                                                window.XWindow, 
+                                                property: WM_PROTOCOL, 
+                                                type: X11.Atom.Atom, 
+                                                format: 32, //bits,
+		                                        (int)X11.PropertyMode.Replace, 
+                                                data: valueHandle.AddrOfPinnedObject(), 
+                                                nelements: 1 /*count*/);
+            }
+            finally
+            {
+                if(valueHandle.IsAllocated)
+                    valueHandle.Free();
+            }
+        } 
+
+        public void Dispose()
+        {
+            Xlib.XCloseDisplay(Display);
         }
     }
 }

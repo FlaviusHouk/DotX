@@ -12,7 +12,6 @@ namespace DotX.Sample
             var app = new DotX.Application();
 
             var mainWin = new MyWindow();
-            app.Windows.Add(mainWin);
             
             app.Run();
         }

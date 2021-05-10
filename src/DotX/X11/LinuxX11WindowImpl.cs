@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using Cairo;
 using DotX.Abstraction;
 using Xlib = X11.Xlib;
@@ -7,15 +8,16 @@ namespace DotX.XOrg
 {
     public class LinuxX11WindowImpl : IWindowImpl, IDisposable
     {
+        private bool _isClosing;
         private readonly X11.Window _window;
         private readonly IntPtr _visual;
         private readonly LinuxX11Platform _platform;
 
         private XlibSurface _cairoSurface;
-        private Context _context;
 
         public event RenderRequest Dirty;
         public event ResizingDelegate Resizing;
+        public event Action Closed;
 
         public X11.Window XWindow => _window;
 
@@ -112,6 +114,18 @@ namespace DotX.XOrg
                                   _window,
                                   1<<2 | 1<<3,
                                   ref conf);
+        }
+
+        public void Close()
+        {
+            if(_isClosing)
+                return;
+
+            _isClosing = true;
+
+            Dispose();
+
+            Closed?.Invoke();
         }
     }
 }

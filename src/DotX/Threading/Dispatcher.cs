@@ -13,6 +13,8 @@ namespace DotX.Threading
         
         private readonly Thread _therad;
         private readonly ManualResetEventSlim _awaiter;
+        
+        private bool _isShuttingDown;
         private Action _waitFunc;
 
         private readonly PriorityQueue<DispatcherJob, OperationPriority> _queue =
@@ -26,6 +28,9 @@ namespace DotX.Threading
 
         public void Invoke(Action action)
         {
+            if(_isShuttingDown)
+                return;
+
             var job = new DispatcherJob(action);
 
             if(_therad.ManagedThreadId == Thread.CurrentThread.ManagedThreadId)
@@ -45,6 +50,9 @@ namespace DotX.Threading
 
         public void BeginInvoke(Action action, OperationPriority priority)
         {
+            if(_isShuttingDown)
+                return;
+
             _queue.Enqueue(new DispatcherJob(action), priority);
 
             if(!_awaiter.IsSet && _awaiter is null)
@@ -73,6 +81,12 @@ namespace DotX.Threading
             _waitFunc = waitFunc;
         }
 
+        internal void Shutdown()
+        {
+            //Lock?
+            _isShuttingDown = true;
+        }
+
         private void ProcessQueue(DispatcherJob job = null)
         {
             DispatcherJob current = null;
@@ -80,6 +94,8 @@ namespace DotX.Threading
             {
                 if(_queue.TryDequeue(out current))
                     current.Invoke();
+                else if(_isShuttingDown)
+                    return;
                 else if (job is null)
                     Wait();
             }

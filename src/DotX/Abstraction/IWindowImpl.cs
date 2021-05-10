@@ -1,3 +1,4 @@
+using System;
 using Cairo;
 
 namespace DotX.Abstraction
@@ -9,11 +10,15 @@ namespace DotX.Abstraction
         void Show();
 
         void Resize(int width, int height);
+
+        void Close();
         
         Surface WindowSurface { get; }
 
         event RenderRequest Dirty;
         event ResizingDelegate Resizing;
+
+        event Action Closed;
         
     }
 }
