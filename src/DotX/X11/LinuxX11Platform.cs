@@ -38,10 +38,42 @@ namespace DotX.XOrg
         {
             Display = Xlib.XOpenDisplay(null);
 
-            Xlib.XSetErrorHandler(OnError);
-            Dispatcher.CurrentDispatcher.SetWaitFunc(ListenToEvents);
+            //Xlib.XSetErrorHandler(OnError);
+
+            Dispatcher.CurrentDispatcher.Initialize(ListenToEvents,
+                                                    WakeUp);
+                                                    
             _deleteProtocolAtomProvider =
                 new Lazy<X11.Atom>(() => XInternAtom(Display, "WM_DELETE_WINDOW", false));
+        }
+
+        private void WakeUp()
+        {
+            if(!_windows.Any())
+                return;
+
+            IntPtr ev = Marshal.AllocHGlobal(24 * sizeof(long));
+            try
+            {
+                var msg = new X11.XClientMessageEvent()
+                {
+                    message_type = X11.Atom.None,
+                    window = _windows[0].XWindow,
+                    display = Display,
+                    type = (int)X11.Event.ClientMessage,
+                    format = 32
+                };
+
+                Marshal.StructureToPtr(msg, ev, false);
+
+                var status = Xlib.XSendEvent(Display, _windows[0].XWindow, true, 0, ev);
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(ev);
+            }
+
+            
         }
 
         private int OnError(IntPtr display, ref X11.XErrorEvent ev)
@@ -153,30 +185,30 @@ namespace DotX.XOrg
 
         private void HandleConfigureEvent(X11.XConfigureRequestEvent configuraEvent, Dispatcher d)
         {
-            d.Invoke(() => {
+            d.BeginInvoke(() => {
                 var window = _windows.First(w => w.XWindow == configuraEvent.window);
                 window.OnResize(configuraEvent.width, configuraEvent.height); 
-            });
+            }, OperationPriority.Normal);
         }
 
         private void HandleResizeEvent(X11.XResizeRequestEvent resizeEvent, Dispatcher d)
         {
-            d.Invoke(() => {
+            d.BeginInvoke(() => {
                 var window = _windows.First(w => w.XWindow == resizeEvent.window);
                 window.Resize(resizeEvent.width, resizeEvent.height); 
-            });
+            }, OperationPriority.Normal);
         }
 
         private void HandleExposeEvent(X11.XExposeEvent exposeEvent, Dispatcher d)
         {
-            d.Invoke(() => {
+            d.BeginInvoke(() => {
                 var window = _windows.First(w => w.XWindow == exposeEvent.window);
                 
                 window.MarkDirty(new RenderEventArgs(exposeEvent.x,
                                                      exposeEvent.y,
                                                      exposeEvent.width,
                                                      exposeEvent.height));
-            });
+            }, OperationPriority.Normal);
         }
 
         private void DestroyWindow(X11.Window xWindow)

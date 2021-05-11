@@ -1,6 +1,7 @@
 using System;
 using Cairo;
 using DotX.Controls;
+using DotX.Threading;
 
 namespace DotX
 {
@@ -11,8 +12,14 @@ namespace DotX
 
         public static LayoutManager Instance => _value.Value;
 
+        private readonly RenderManager _renderManager; 
+
         private LayoutManager()
-        {}
+        {
+            var d = Dispatcher.CurrentDispatcher;
+            
+            _renderManager = new RenderManager(d);
+        }
 
         public void InvalidateMeasure(Visual visual)
         {
@@ -38,24 +45,22 @@ namespace DotX
             visual.Arrange(visual.DesiredSize);
         }
 
-        public void InitiateRender(Visual visual)
+        public void InitiateRender(Visual visual, Rectangle? area)
         {
             var originalVisual = visual;
 
-            while(visual is not Window)
+            while(visual is not Window && visual is not null)
                 visual = visual.VisualParent;
+
+            if(visual is null)
+                return;
 
             var window = (Window)visual;
 
             if(!window.IsVisible)
                 return;
 
-            Surface winSurface = window.WindowImpl.WindowSurface;
-            using Context c = new Context(winSurface);
-            c.Rectangle(originalVisual.RenderSize);
-            c.Clip();
-
-            originalVisual.Render(c);
+            _renderManager.Invalidate(window, originalVisual, area);
         }
     }
 }

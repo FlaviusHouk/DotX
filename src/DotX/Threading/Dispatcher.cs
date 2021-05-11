@@ -10,12 +10,14 @@ namespace DotX.Threading
             
         public static Dispatcher CurrentDispatcher => 
             _dispatcherCreator.Value;
-        
+
         private readonly Thread _therad;
         private readonly ManualResetEventSlim _awaiter;
         
         private bool _isShuttingDown;
+        private bool _isWaiting;
         private Action _waitFunc;
+        private Action _awakeFunction;
 
         private readonly PriorityQueue<DispatcherJob, OperationPriority> _queue =
             new PriorityQueue<DispatcherJob, OperationPriority>();
@@ -43,7 +45,11 @@ namespace DotX.Threading
             {
                 ManualResetEvent ev = new ManualResetEvent(false);
                 job.Completed += () => ev.Set();
+
                 _queue.Enqueue(job, OperationPriority.Normal);
+                if(_isWaiting)
+                    _awakeFunction?.Invoke();
+
                 ev.WaitOne();
             }
         }
@@ -54,6 +60,10 @@ namespace DotX.Threading
                 return;
 
             _queue.Enqueue(new DispatcherJob(action), priority);
+
+            if(_isWaiting &&
+               _therad.ManagedThreadId != Thread.CurrentThread.ManagedThreadId)
+                _awakeFunction?.Invoke();
 
             if(!_awaiter.IsSet && _awaiter is null)
                 _awaiter.Set();
@@ -76,9 +86,11 @@ namespace DotX.Threading
             }
         }
 
-        internal void SetWaitFunc(Action waitFunc)
+        internal void Initialize(Action waitFunc,
+                                 Action awakeFunc)
         {
             _waitFunc = waitFunc;
+            _awakeFunction = awakeFunc;
         }
 
         internal void Shutdown()
@@ -104,14 +116,19 @@ namespace DotX.Threading
 
         private void Wait()
         {
+            _isWaiting = true;
+
             if(_waitFunc != null)
             {
                 _waitFunc.Invoke();
-                return;
+            }
+            else
+            {
+                _awaiter.Reset();
+                _awaiter.Wait(50);
             }
 
-            _awaiter.Reset();
-            _awaiter.Wait(50);
+            _isWaiting = false;
         }
     }
 }

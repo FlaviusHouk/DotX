@@ -83,10 +83,16 @@ namespace DotX.XOrg
         
         public void OnResize(int width, int height)
         {
-            if(_cairoSurface != null)
+            if(_cairoSurface is not null)
             {
                 var oldHeight = _cairoSurface.Height;
                 var oldWidth = _cairoSurface.Width;
+
+                if(oldWidth == width &&
+                   oldHeight == height)
+                {
+                   return;
+                }
 
                 _cairoSurface.SetSize(width, height);
             }

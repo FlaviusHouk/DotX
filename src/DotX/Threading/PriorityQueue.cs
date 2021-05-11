@@ -7,58 +7,73 @@ namespace DotX.Threading
     internal class PriorityQueue<TElem, TPrio>
         where TPrio : IComparable
     {
+        private readonly object _locker = new object();
+
+        //TODO: use collection for multithreading.
         private SortedDictionary<TPrio, Queue<TElem>> _objectStore =
             new SortedDictionary<TPrio, Queue<TElem>>();
 
         public void Enqueue(TElem elemToAdd, TPrio prio)
         {
-            if(!_objectStore.TryGetValue(prio, out var queue))
+            lock (_locker)
             {
-                queue = new Queue<TElem>();
-                _objectStore.Add(prio, queue);
-            }
+                if (!_objectStore.TryGetValue(prio, out var queue))
+                {
+                    queue = new Queue<TElem>();
+                    _objectStore.Add(prio, queue);
+                }
 
-            queue.Enqueue(elemToAdd);
+                queue.Enqueue(elemToAdd);
+            }
         }
 
         public TElem Dequeue()
         {
-            if(_objectStore.Count == 0)
-                throw new InvalidOperationException();
+            lock (_locker)
+            {
+                if (_objectStore.Count == 0)
+                    throw new InvalidOperationException();
 
-            var queue = _objectStore.Last();
-            var elem = queue.Value.Dequeue();
+                var queue = _objectStore.Last();
+                var elem = queue.Value.Dequeue();
 
-            if(queue.Value.Count == 0)
-                _objectStore.Remove(queue.Key);
+                if (queue.Value.Count == 0)
+                    _objectStore.Remove(queue.Key);
 
-            return elem;
+                return elem;
+            }
         }
 
         public bool TryDequeue(out TElem value)
         {
-            value = default;
+            lock (_locker)
+            {
+                value = default;
 
-            if(_objectStore.Count == 0)
-                return false;
+                if (_objectStore.Count == 0)
+                    return false;
 
-            var queue = _objectStore.Last();
+                var queue = _objectStore.Last();
 
-            var returnValue = queue.Value.TryDequeue(out value);
+                var returnValue = queue.Value.TryDequeue(out value);
 
-            if(queue.Value.Count == 0)
-                _objectStore.Remove(queue.Key);
-            
-            return returnValue;
+                if (queue.Value.Count == 0)
+                    _objectStore.Remove(queue.Key);
+
+                return returnValue;
+            }
         }
 
         public TElem Peek()
         {
-            if(_objectStore.Count == 0)
-                throw new InvalidOperationException();
+            lock (_locker)
+            {
+                if (_objectStore.Count == 0)
+                    throw new InvalidOperationException();
 
-            var queue = _objectStore.First();
-            return queue.Value.Peek();
+                var queue = _objectStore.First();
+                return queue.Value.Peek();
+            }
         }
     }
 }

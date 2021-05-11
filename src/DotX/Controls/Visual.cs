@@ -57,8 +57,7 @@ namespace DotX.Controls
             DirtyArea = area ?? RenderSize;
 
             IsDirty = true;
-            Dispatcher.CurrentDispatcher.BeginInvoke(() => LayoutManager.Instance.InitiateRender(this), 
-                                                     OperationPriority.Normal);
+            LayoutManager.Instance.InitiateRender(this, area);
         }
     }
 }
