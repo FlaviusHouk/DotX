@@ -68,7 +68,10 @@ namespace DotX.XOrg
                                ref attributes);
 
             Xlib.XSelectInput(platform.Display, _window, X11.EventMask.ExposureMask | 
-                                                         X11.EventMask.StructureNotifyMask);
+                                                         X11.EventMask.StructureNotifyMask |
+                                                         X11.EventMask.EnterWindowMask | 
+                                                         X11.EventMask.LeaveWindowMask |
+                                                         X11.EventMask.PointerMotionMask);
         }
 
         public void Show()

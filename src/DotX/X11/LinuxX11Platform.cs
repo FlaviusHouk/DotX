@@ -164,7 +164,50 @@ namespace DotX.XOrg
                     var clientMessage = Marshal.PtrToStructure<X11.XClientMessageEvent>(ev);
                     HandleClientMessage(clientMessage, d);
                     break;
+
+                case (int)X11.Event.EnterNotify:
+                case (int)X11.Event.LeaveNotify:
+                    var crossingEvent = Marshal.PtrToStructure<X11.XCrossingEvent>(ev);
+                    HandleCrossingEvent(crossingEvent, d);
+                    break;
+
+                case (int)X11.Event.MotionNotify:
+                    var motionEvent = Marshal.PtrToStructure<X11.XMotionEvent>(ev);
+                    HandleMoveEvent(motionEvent, d);
+                    break;
             }
+        }
+
+        private void HandleMoveEvent(X11.XMotionEvent motionEvent, 
+                                     Dispatcher d)
+        {
+            d.BeginInvoke(() => {
+                var window = _windows.First(w => w.XWindow == motionEvent.window);
+                var windowControl = Application.CurrentApp.Windows.First(w => w.WindowImpl == window);
+
+                InputManager.Instance.DispatchPointerMove(windowControl, 
+                                                          new PointerMoveEventArgs(motionEvent.x, 
+                                                                                   motionEvent.y,
+                                                                                   false));
+
+            }, OperationPriority.Normal);
+        }
+
+        private void HandleCrossingEvent(X11.XCrossingEvent crossingEvent, 
+                                         Dispatcher d)
+        {
+            d.BeginInvoke(() => {
+                if(crossingEvent.type == (int)X11.Event.LeaveNotify)
+                {
+                    var window = _windows.First(w => w.XWindow == crossingEvent.window);
+                    var windowControl = Application.CurrentApp.Windows.First(w => w.WindowImpl == window);
+
+                    InputManager.Instance.DispatchPointerMove(windowControl, 
+                                                              new PointerMoveEventArgs(crossingEvent.x, 
+                                                                                       crossingEvent.y,
+                                                                                       true));
+                }
+            }, OperationPriority.Normal);
         }
 
         private void HandleClientMessage(X11.XClientMessageEvent clientMessage, Dispatcher d)

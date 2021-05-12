@@ -1,0 +1,20 @@
+using System;
+
+namespace DotX.Abstraction
+{
+    public class PointerMoveEventArgs : EventArgs
+    {
+        public int X { get; }
+
+        public int Y { get; }
+
+        public bool IsLeaveWindow { get; }
+
+        public PointerMoveEventArgs(int x, int y, bool isLeaveWindow)
+        {
+            X = x;
+            Y = y;
+            IsLeaveWindow = isLeaveWindow;
+        }
+    }
+}

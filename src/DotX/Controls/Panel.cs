@@ -67,5 +67,15 @@ namespace DotX.Controls
             foreach(var child in Children.OfType<Widget>())
                 child.ApplyStyles();
         }
+
+        public override void HitTest(HitTestResult result)
+        {
+            foreach(var child in Children)
+            {
+                child.HitTest(result);
+            }
+
+            base.HitTest(result);
+        }
     }
 }

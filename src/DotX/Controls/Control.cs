@@ -110,5 +110,12 @@ namespace DotX.Controls
         {
             (Content as Widget)?.ApplyStyles();
         }
+
+        public override void HitTest(HitTestResult result)
+        {
+            Content?.HitTest(result);
+
+            base.HitTest(result);
+        }
     }
 }

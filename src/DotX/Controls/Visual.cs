@@ -1,5 +1,6 @@
 using Cairo;
-using DotX.Threading;
+using DotX.Abstraction;
+using DotX.Extensions;
 
 namespace DotX.Controls
 {
@@ -58,6 +59,12 @@ namespace DotX.Controls
 
             IsDirty = true;
             LayoutManager.Instance.InitiateRender(this, area);
+        }
+
+        public virtual void HitTest(HitTestResult result)
+        {
+            if(RenderSize.IsPointInside(result.PointToTest))
+                result.AddVisual(this);
         }
     }
 }

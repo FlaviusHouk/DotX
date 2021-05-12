@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cairo;
+using DotX.Abstraction;
 using DotX.Brush;
 using DotX.Data;
 using DotX.Extensions;
@@ -143,6 +144,15 @@ namespace DotX.Controls
 
             context.Restore();
         }
+
+        public virtual void OnPointerEnter(PointerMoveEventArgs eventArgs)
+        {}
+
+        public virtual void OnPointerMove(PointerMoveEventArgs pointerMoveEventArgs)
+        {}
+        
+        public virtual void OnPointerLeave(PointerMoveEventArgs eventArgs)
+        {}
 
         public void ApplyStyles()
         {
