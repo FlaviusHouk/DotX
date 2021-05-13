@@ -66,7 +66,16 @@ namespace DotX.Xaml
             XamlParseContext parentContext = CurrentContext;
             bool createNewScope = !_reader.IsEmptyElement;
             string elementName = _reader.Name;
-            
+            string ns = string.Empty;
+
+            if(elementName.Contains(':'))
+            {
+                var parts = elementName.Split(':', StringSplitOptions.RemoveEmptyEntries);
+
+                ns = parts[0];
+                elementName = parts[1];
+            }
+
             if(elementName.Contains('.'))
             {
                 string[] parts = elementName.Split('.', StringSplitOptions.RemoveEmptyEntries);
@@ -96,7 +105,7 @@ namespace DotX.Xaml
                 AddNamespaces(attributes);                
             }
 
-            Type objType = CurrentContext.LookupObjectByName(elementName);
+            Type objType = CurrentContext.LookupObjectByName(elementName, ns);
 
             var obj = new XamlObject(objType);            
 

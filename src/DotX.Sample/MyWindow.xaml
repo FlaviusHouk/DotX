@@ -4,17 +4,17 @@
         Background="1;0;0">
 
     <Window.Styles>
-        <Style Selector="Border">
-            <Style.Setters>
-                <Setter Property="BorderThickness" Value="5"/>
-            </Style.Setters>
-        </Style>
+        <styling:Style Selector="Border">
+            <styling:Style.Setters>
+                <styling:Setter Property="BorderThickness" Value="5"/>
+            </styling:Style.Setters>
+        </styling:Style>
 
-        <Style Selector="TextBlock:greet">
-            <Style.Setters>
-                <Setter Property="FontSize" Value="12"/>
-            </Style.Setters>
-        </Style>
+        <styling:Style Selector="TextBlock:greet">
+            <styling:Style.Setters>
+                <styling:Setter Property="FontSize" Value="12"/>
+            </styling:Style.Setters>
+        </styling:Style>
     </Window.Styles>
 
     <StackPanel>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace DotX.Xaml
@@ -34,24 +35,22 @@ namespace DotX.Xaml
             _namespaces.Add(ns);
         }
 
-        public Type LookupObjectByName(string objType)
+        public Type LookupObjectByName(string objType, string ns)
         {
-            foreach(var ns in _namespaces)
+            var xNamespace = _namespaces.FirstOrDefault(n => n.Name == ns);
+            if(xNamespace is null)
+                return _parent?.LookupObjectByName(objType, ns);
+
+            var type = Type.GetType(string.Format("{0}.{1}", xNamespace.ClrNamespace, objType), false, true);
+
+            if(type is null)
             {
-                var type = Type.GetType(string.Format("{0}.{1}", ns.ClrNamespace, objType), false, true);
+                var assembly = Assembly.Load(xNamespace.AssemblyName);
 
-                if(type is null)
-                {
-                    var assembly = Assembly.Load(ns.AssemblyName);
-                    
-                    type = assembly.GetType(string.Format("{0}.{1}", ns.ClrNamespace, objType), false, true);
-                }
-
-                if(type is not null)
-                    return type;
+                type = assembly.GetType(string.Format("{0}.{1}", xNamespace.ClrNamespace, objType), false, true);
             }
 
-            return _parent?.LookupObjectByName(objType);
+            return type;
         }
     }
 }
