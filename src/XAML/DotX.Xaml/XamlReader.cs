@@ -111,7 +111,21 @@ namespace DotX.Xaml
 
             foreach(var attr in attributes)
             {
-                var prop = new InlineXamlProperty(attr.Key, attr.Value);
+                XamlProperty prop;
+                string trimmedValue = attr.Value.Trim();
+
+                if(trimmedValue.StartsWith('{') && 
+                   trimmedValue.EndsWith('}'))
+                {
+                    var parser = new MarkupExtensionParser(trimmedValue);
+                    var extension = parser.ParseExtension(CurrentContext);
+                    prop = new ExtendedXamlProperty(attr.Key, extension);
+                }
+                else
+                {
+                    prop = new InlineXamlProperty(attr.Key, attr.Value);
+                }
+
                 obj.AddProperty(prop);
             }
             

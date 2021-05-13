@@ -58,4 +58,16 @@ namespace DotX.Xaml
             _children.Add(child);
         }
     }
+
+    internal class ExtendedXamlProperty : XamlProperty
+    {
+        public XamlObject Extension;
+
+        public ExtendedXamlProperty(string propName, XamlObject extension) :
+            base(propName)
+        {
+            Extension = extension ??
+                throw new ArgumentNullException(nameof(extension));
+        }
+    }
 }

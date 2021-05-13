@@ -1,5 +1,6 @@
 <Window xmlns="DotX.Controls"
         xmlns:styling="DotX.Styling"
+        xmlns:ext="DotX.Xaml.MarkupExtensions"
         Width = "300" Height = "300"
         Background="1;0;0">
 
@@ -18,7 +19,7 @@
     </Window.Styles>
 
     <StackPanel>
-        <Border Foreground="0;1;0" Padding="10">
+        <Border Foreground="{ ext:ValueProvider RawValue=0;1;0 }" Padding="10">
             <StackPanel>
                 <TextBlock Text="Hello!" Foreground="0;0;0" Classes="greet"
                            FontFamily = "Liberation Serif" />

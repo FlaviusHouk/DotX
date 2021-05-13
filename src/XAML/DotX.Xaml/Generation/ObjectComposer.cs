@@ -68,6 +68,7 @@ namespace DotX.Xaml.Generation
             {
                 var inlineProp = prop as InlineXamlProperty;
                 var fullProp = prop as FullXamlProperty;
+                var extendedProp = prop as ExtendedXamlProperty;
 
                 if(Converters.Converters.TryGetConverterForType(prop.PropertyType, out var converter) &&
                    inlineProp is not null)
@@ -115,6 +116,13 @@ namespace DotX.Xaml.Generation
                         foreach(var child in children)
                             methodToAdd.Invoke(collection, new object[] { child });
                     }  
+                }
+                else if(extendedProp is not null)
+                {
+                    var extension = (IMarkupExtension)ProcessObject(extendedProp.Extension);
+                    var clrProp = target.GetType().GetProperty(extendedProp.PropertyName);
+
+                    clrProp.SetValue(target, extension.ProvideValue(target, extendedProp.PropertyName));
                 }
                 else
                 {
