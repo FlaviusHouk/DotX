@@ -28,6 +28,10 @@ namespace DotX.Xaml
         {
             _reader = new XmlTextReader(input);
             _contexts.Push(XamlParseContext.CreateRootContext());
+
+            //Add option to modify it by user
+            CurrentContext.IncludeIntoDefault("DotX.Styling");
+            CurrentContext.IncludeIntoDefault("DotX.Xaml.MarkupExtensions");
         }
 
         public XamlObject Parse()
@@ -165,7 +169,11 @@ namespace DotX.Xaml
             {
                 attributes.Remove(ns.Key);
 
-                context.AddNamespace(XamlNamespace.Parse(ns.Key, ns.Value));
+                if(XamlNamespace.TryParse(ns.Key, ns.Value, out var xamlNs))
+                    context.AddNamespace(xamlNs);
+                else
+                    context.IncludeIntoDefault(ns.Value);
+                    
             }
         }
 

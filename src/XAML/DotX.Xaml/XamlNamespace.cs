@@ -5,17 +5,19 @@ namespace DotX.Xaml
 {
     internal class XamlNamespace
     {
-        public static XamlNamespace Parse(string key, string value)
+        public static bool TryParse(string key, string value, out XamlNamespace ns)
         {
+            ns = default;
+
             if(key.Contains(':'))
                 key = key.Split(':')[1];
             else
-                key = string.Empty;
+                return false;
 
-            return new XamlNamespace(key, value, "DotX");
+            ns = new XamlNamespace(key, value, "DotX");
+            
+            return true;
         }
-
-        public bool IsDefault => string.IsNullOrEmpty(Name);
 
         public string Name { get; } 
 
@@ -25,6 +27,9 @@ namespace DotX.Xaml
 
         private XamlNamespace(string name, string clrNamespace, string assemblyName)
         {
+            if(string.IsNullOrEmpty(name))
+                throw new ArgumentNullException(nameof(name));
+                
             Name = name;
             ClrNamespace = clrNamespace;
             AssemblyName = assemblyName;

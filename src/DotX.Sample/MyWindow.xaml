@@ -1,25 +1,23 @@
 <Window xmlns="DotX.Controls"
-        xmlns:styling="DotX.Styling"
-        xmlns:ext="DotX.Xaml.MarkupExtensions"
         Width = "300" Height = "300"
         Background="1;0;0">
 
     <Window.Styles>
-        <styling:Style Selector="Border">
-            <styling:Style.Setters>
-                <styling:Setter Property="BorderThickness" Value="5"/>
-            </styling:Style.Setters>
-        </styling:Style>
+        <Style Selector="Border">
+            <Style.Setters>
+                <Setter Property="BorderThickness" Value="5"/>
+            </Style.Setters>
+        </Style>
 
-        <styling:Style Selector="TextBlock:greet">
-            <styling:Style.Setters>
-                <styling:Setter Property="FontSize" Value="12"/>
-            </styling:Style.Setters>
-        </styling:Style>
+        <Style Selector="TextBlock:greet">
+            <Style.Setters>
+                <Setter Property="FontSize" Value="12"/>
+            </Style.Setters>
+        </Style>
     </Window.Styles>
 
     <StackPanel>
-        <Border Foreground="{ ext:ValueProvider RawValue=0;1;0 }" Padding="10">
+        <Border Foreground="{ ValueProvider RawValue=0;1;0 }" Padding="10">
             <StackPanel>
                 <TextBlock Text="Hello!" Foreground="0;0;0" Classes="greet"
                            FontFamily = "Liberation Serif" />
