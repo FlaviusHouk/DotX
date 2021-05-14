@@ -112,8 +112,12 @@ namespace DotX.Controls
             get;
         } = new StylesCollection();
 
+        //TODO: create wrapper class for IList<string>
         public IList<string> Classes { get; } =
             new List<string>();
+
+        public ResourceCollection Resources { get; }
+            = new ResourceCollection();
 
         protected override Rectangle ArrangeCore(Rectangle size)
         {
@@ -156,7 +160,7 @@ namespace DotX.Controls
 
         public void ApplyStyles()
         {
-            var styles = GetStylesForChild(this);
+            var styles = this.GetStylesForElement(this);
 
             foreach(var s in styles.Reverse()
                                    .Where(ps => !_appliedStyles.Any(applied => applied.Style == ps.Style))
@@ -177,49 +181,7 @@ namespace DotX.Controls
                 s.Style.Detach(child);
         }
 
-        private IReadOnlyCollection<PriorityStyle> GetStylesForChild(CompositeObject obj)
-        {
-            int i = 0;
-            var styles = Styles.Where(s => s.Selector.Matches(obj))
-                               .Select(s => new PriorityStyle(s, i));
-
-            var currentObject = VisualParent;
-
-            while(currentObject is not null)
-            {
-                i++;
-
-                if(currentObject is Widget w)
-                    styles = styles.Concat(w.Styles.Where(s => s.Selector.Matches(obj))
-                                                   .Select(s => new PriorityStyle(s, i)));
-
-                currentObject = currentObject.VisualParent;
-            }
-
-            return styles.ToArray();
-        }
-
         private SortedSet<PriorityStyle> _appliedStyles = 
             new SortedSet<PriorityStyle>();
-
-        private class PriorityStyle : IComparable
-        {
-            public Style Style { get; }
-            public int Priority { get; }
-
-            public PriorityStyle(Style style, int priority)
-            {
-                Style = style;
-                Priority = priority;
-            }
-
-            public int CompareTo(object obj)
-            {
-                if (obj is not PriorityStyle p)
-                    throw new ArgumentException();
-
-                return Priority - p.Priority;
-            }
-        }
     }
 }
