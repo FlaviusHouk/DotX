@@ -7,11 +7,11 @@ namespace DotX.Sample
 {
     public partial class MyWindow : Window
     {
-        partial void Initialize();
+        partial void LoadComponent();
 
         public MyWindow()
         {
-            Initialize();
+            LoadComponent();
         }
     }
 }

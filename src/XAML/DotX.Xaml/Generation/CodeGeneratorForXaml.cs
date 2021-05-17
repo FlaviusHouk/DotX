@@ -22,7 +22,7 @@ namespace DotX.Xaml.Generation
             output.WriteLine("\t{");
 
             output.WriteLine(@"
-            partial void Initialize() 
+            partial void LoadComponent() 
             {
                 DotX.Xaml.Generation.ObjectComposer.Compose(this);
             }");
