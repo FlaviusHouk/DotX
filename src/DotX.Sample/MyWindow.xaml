@@ -1,4 +1,5 @@
 <Window xmlns="DotX.Controls"
+        xmlns:x="DotX.Xaml"
         Width = "300" Height = "300"
         Background="1;0;0">
 
@@ -16,8 +17,12 @@
         </Style>
     </Window.Styles>
 
+    <Window.Resources>
+        <SolidColorBrush x:Key="BorderForeground" Red="0" Green="1" Blue="0"/>
+    </Window.Resources>
+
     <StackPanel>
-        <Border Foreground="{ ValueProvider RawValue=0;1;0 }" Padding="10">
+        <Border Foreground="{ StaticResource Key=BorderForeground }" Padding="10">
             <StackPanel>
                 <TextBlock Text="Hello!" Foreground="0;0;0" Classes="greet"
                            FontFamily = "Liberation Serif" />

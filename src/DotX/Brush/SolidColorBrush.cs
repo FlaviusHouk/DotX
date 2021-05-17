@@ -4,22 +4,23 @@ namespace DotX.Brush
 {
     public class SolidColorBrush : IBrush
     {
-        private readonly double _r;
-        private readonly double _g;
-        private readonly double _b;
+        public double Red { get; set; }
+        public double Green { get; set; }
+        public double Blue { get; set; }
 
+        public SolidColorBrush() {}
         public SolidColorBrush(double r,
                                double g,
                                double b)
         {
-            _r = r;
-            _g = g;
-            _b = b;
+            Red = r;
+            Green = g;
+            Blue = b;
         }
         
         public void ApplyTo(Context context)
         {
-            context.SetSourceRGB(_r, _g, _b);
+            context.SetSourceRGB(Red, Green, Blue);
         }
     }
 }

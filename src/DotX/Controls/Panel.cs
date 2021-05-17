@@ -77,5 +77,11 @@ namespace DotX.Controls
 
             base.HitTest(result);
         }
+
+        protected override void OnInitialize()
+        {
+            foreach(var child in Children.OfType<Widget>())
+                child.Initialize();
+        }
     }
 }

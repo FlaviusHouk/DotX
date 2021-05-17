@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using DotX.Abstraction;
 using DotX.Controls;
+using DotX.Data;
 
 namespace DotX.Xaml.Generation
 {
@@ -27,6 +28,9 @@ namespace DotX.Xaml.Generation
             composer.Compose();
         }
 
+        private record ObjectInto (object Target, XamlObject Info)
+        {}
+
         private readonly object _target;
         private readonly XamlObject _description;
 
@@ -48,7 +52,7 @@ namespace DotX.Xaml.Generation
             AssignContent(_target, childObjects);
         }
 
-        private object ProcessObject(XamlObject obj)
+        private ObjectInto ProcessObject(XamlObject obj)
         {
             object instance = Activator.CreateInstance(obj.ObjType);
 
@@ -58,7 +62,7 @@ namespace DotX.Xaml.Generation
 
             AssignContent(instance, childObjects);
 
-            return instance;
+            return new ObjectInto(instance, obj);
         }
 
         private void SetProperties(object target,
@@ -69,9 +73,14 @@ namespace DotX.Xaml.Generation
                 var inlineProp = prop as InlineXamlProperty;
                 var fullProp = prop as FullXamlProperty;
                 var extendedProp = prop as ExtendedXamlProperty;
+                var attachedProp = prop as AttachedXamlProperty;
 
-                if(Converters.Converters.TryGetConverterForType(prop.PropertyType, out var converter) &&
-                   inlineProp is not null)
+                if(attachedProp is not null)
+                {
+                    continue;
+                }
+                else if(Converters.Converters.TryGetConverterForType(prop.PropertyType, out var converter) &&
+                        inlineProp is not null)
                 {
                     object val = converter.Convert(inlineProp.RawValue, prop.PropertyType);
                     PropertyInfo clrProp = target.GetType().GetProperty(prop.PropertyName);
@@ -106,23 +115,47 @@ namespace DotX.Xaml.Generation
                                                     .ToArray();
                     if(clrProp.CanWrite)
                     {
-                        clrProp.SetValue(target, children);
+                        clrProp.SetValue(target, children.Select(o => o.Target).ToArray());
                     }
                     else
                     {
                         var collection = clrProp.GetValue(target);
-                        var methodToAdd = collection.GetType().GetMethod(nameof(ICollection<object>.Add));
+                        
+                        if(collection is ResourceCollection res)
+                        {
+                            foreach(var child in children)
+                            {
+                                var keyAttr = child.Info.Properties.OfType<AttachedXamlProperty>().FirstOrDefault(p => p.Owner == "x");
 
-                        foreach(var child in children)
-                            methodToAdd.Invoke(collection, new object[] { child });
+                                res.Add(keyAttr.RawValue, child.Target);
+                            }
+                        }
+                        else
+                        {
+                            var methodToAdd = collection.GetType().GetMethod(nameof(ICollection<object>.Add));
+
+                            foreach(var child in children.Select(c => c.Target))
+                                methodToAdd.Invoke(collection, new object[] { child });
+                        }
                     }  
                 }
                 else if(extendedProp is not null)
                 {
-                    var extension = (IMarkupExtension)ProcessObject(extendedProp.Extension);
+                    var extension = (IMarkupExtension)ProcessObject(extendedProp.Extension).Target;
                     var clrProp = target.GetType().GetProperty(extendedProp.PropertyName);
 
-                    clrProp.SetValue(target, extension.ProvideValue(target, extendedProp.PropertyName));
+                    var extendedValue = extension.ProvideValue(target, extendedProp.PropertyName);
+
+                    if(extendedValue is IPropertyValue propVal &&
+                       target is CompositeObject compositeObject &&
+                       compositeObject.TryGetProperty(extendedProp.PropertyName, out var compProp))
+                    {
+                        compositeObject.SetValue(compProp, extendedValue);
+                    }
+                    else
+                    {
+                        clrProp.SetValue(target, extendedValue);
+                    }
                 }
                 else
                 {
@@ -132,19 +165,21 @@ namespace DotX.Xaml.Generation
         }
 
         private void AssignContent(object target,
-                                   IReadOnlyCollection<object> children)
+                                   IReadOnlyCollection<ObjectInto> children)
         {
             if(!children.Any())
                 return;
+
+            var targets = children.Select(c => c.Target);
                 
             if(target is Panel panel)
             {
-                foreach(var child in children.Cast<Visual>())
+                foreach(var child in targets.Cast<Visual>())
                     panel.AddChild(child);
             }
             else if(target is Control control)
             {
-                control.Content = children.Cast<Visual>().Single();
+                control.Content = targets.Cast<Visual>().Single();
             }
             else
             {

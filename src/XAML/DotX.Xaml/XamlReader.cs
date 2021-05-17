@@ -32,6 +32,7 @@ namespace DotX.Xaml
             //Add option to modify it by user
             CurrentContext.IncludeIntoDefault("DotX.Styling");
             CurrentContext.IncludeIntoDefault("DotX.Xaml.MarkupExtensions");
+            CurrentContext.IncludeIntoDefault("DotX.Brush");
         }
 
         public XamlObject Parse()
@@ -124,6 +125,15 @@ namespace DotX.Xaml
                     var parser = new MarkupExtensionParser(trimmedValue);
                     var extension = parser.ParseExtension(CurrentContext);
                     prop = new ExtendedXamlProperty(attr.Key, extension);
+                }
+                else if(attr.Key.Contains(':'))
+                {
+                    var parts = attr.Key.Split(':');
+
+                    if(parts.Length != 2)
+                        throw new XmlException();
+
+                    prop = new AttachedXamlProperty(parts[1], attr.Value, parts[0]);
                 }
                 else
                 {

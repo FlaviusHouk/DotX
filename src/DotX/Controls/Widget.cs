@@ -62,6 +62,7 @@ namespace DotX.Controls
                                                                          w.Invalidate();
                                                                      });
 
+        
         public Widget LogicalParent { get; internal set; }
         public ICollection<Visual> VisualChildren { get; }
 
@@ -105,6 +106,12 @@ namespace DotX.Controls
         {
             get => GetValue<Margin>(PaddingProperty);
             set => SetValue(PaddingProperty, value);
+        }
+
+        public bool IsInitialized
+        {
+            get;
+            private set;
         }
 
         public StylesCollection Styles
@@ -167,12 +174,16 @@ namespace DotX.Controls
                                    .Where(ps => ps.Style.TryAttach(this)))
             {
                 _appliedStyles.Add(s);
+                OnStyleApplied(s.Style);
             }
 
             ApplyStylesForChildren();
         }
 
         protected virtual void ApplyStylesForChildren()
+        {}
+
+        protected virtual void OnStyleApplied(Style s)
         {}
 
         protected void UnsetStyles(CompositeObject child)
@@ -183,5 +194,19 @@ namespace DotX.Controls
 
         private SortedSet<PriorityStyle> _appliedStyles = 
             new SortedSet<PriorityStyle>();
+
+        public void Initialize()
+        {
+            if(IsInitialized)
+                throw new InvalidOperationException();
+
+            IsInitialized = true;
+            OnInitialize();
+        }
+
+        protected virtual void OnInitialize()
+        {
+            //TODO: add event Initialized
+        }
     }
 }

@@ -27,14 +27,7 @@ namespace DotX.Controls
 
         private static void OnFontSizePropertyChanged(TextBlock textBlock, int oldValue, int newValue)
         {
-            if(textBlock._font is not null)
-                textBlock._font.Dispose();
-
-            textBlock._font = new FontDescription()
-            {
-                Family = textBlock.FontFamily,
-                Size = (int)(newValue * Pango.Scale.PangoScale)
-            };
+            textBlock.RebuildFontDescription();
         }
 
         public static readonly CompositeObjectProperty FontFamilyProperty =
@@ -44,14 +37,7 @@ namespace DotX.Controls
 
         private static void OnFontFamilyPropertyChanged(TextBlock textBlock, string oldValue, string newValue)
         {
-            if(textBlock._font is not null)
-                textBlock._font.Dispose();
-
-            textBlock._font = new FontDescription()
-            {
-                Family = newValue,
-                Size = (int)(textBlock.FontSize * Pango.Scale.PangoScale),
-            };
+            textBlock.RebuildFontDescription();
         }
 
         public static readonly CompositeObjectProperty FontWeightProperty =
@@ -134,6 +120,24 @@ namespace DotX.Controls
         protected override Cairo.Rectangle ArrangeCore(Cairo.Rectangle size)
         {
             return DesiredSize;
+        }
+
+        protected override void OnStyleApplied(Styling.Style s)
+        {
+            if(s.Setters.Select(s => s.Property).Any(p => p == nameof(FontSize) || p == nameof(FontFamily)))
+                RebuildFontDescription();
+        }
+
+        private void RebuildFontDescription()
+        {
+            if(_font is not null)
+                _font.Dispose();
+
+            _font = new FontDescription()
+            {
+                Family = FontFamily,
+                Size = (int)(FontSize * Pango.Scale.PangoScale),
+            };
         }
     }
 }

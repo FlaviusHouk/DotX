@@ -50,6 +50,9 @@ namespace DotX.Controls
             if(IsVisible)
                 return;
 
+            if(!IsInitialized)
+                Initialize();
+
             WindowImpl.Resize(Width, Height);
             WindowImpl.Show();
             IsVisible = true;

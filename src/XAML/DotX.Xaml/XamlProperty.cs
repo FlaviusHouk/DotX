@@ -18,7 +18,7 @@ namespace DotX.Xaml
             PropertyName = propName;
         }
 
-        public void Invalidate(Type owner)
+        public virtual void Invalidate(Type owner)
         {
             var prop = owner.GetProperty(PropertyName, BindingFlags.Public | BindingFlags.Instance);
             
@@ -69,5 +69,19 @@ namespace DotX.Xaml
             Extension = extension ??
                 throw new ArgumentNullException(nameof(extension));
         }
+    }
+
+    internal class AttachedXamlProperty : InlineXamlProperty
+    {
+        public string Owner { get; }
+
+        public AttachedXamlProperty(string propName, string rawValue, string owner) : 
+            base(propName, rawValue)
+        {
+            Owner = owner;
+        }
+
+        public override void Invalidate(Type owner)
+        {}
     }
 }

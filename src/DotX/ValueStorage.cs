@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DotX.Abstraction;
+using DotX.Controls;
 
 namespace DotX
 {
@@ -34,44 +35,6 @@ namespace DotX
             }
 
             public bool Is<T>() => false;
-        }
-        
-        private class PropertyValue<T> : IPropertyValue
-        {
-            private T _value;
-
-            public PropertyValue(T value)
-            {
-                _value = value;
-            }
-
-            public TVal GetValue<TVal>()
-            {
-                if(_value is TVal val)
-                    return val;
-
-                throw new InvalidCastException();
-            }
-
-            public bool Is<TVal>()
-            {
-                return _value is TVal;
-            }
-
-            public TVal SetValue<TVal>(TVal value)
-            {
-                if(value is not T val)
-                    throw new InvalidCastException();
-                
-                T oldValue = _value;
-
-                _value = val;
-
-                if(oldValue is not TVal old)
-                    throw new InvalidCastException();
-
-                return old;
-            }
         }
 
         private readonly Dictionary<CompositeObject, Dictionary<CompositeObjectProperty, IPropertyValue>> _valueStorage =
@@ -118,7 +81,19 @@ namespace DotX
             {
                 IChangeHandler handler = prop.Metadata.InitiateChange(owner, prop);
                 props[prop] = val;
-                handler.Changed(val);
+
+                //Don't like this solution. Should be refactored.
+                //Reason for it that we cannot get Resource value
+                //until visual tree is ready.
+                if(owner is Widget w)
+                {
+                    if(w.IsInitialized)
+                        handler.Changed(val);
+                }
+                else
+                {
+                    handler.Changed(val);
+                }
 
                 return;
             }

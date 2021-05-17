@@ -117,5 +117,11 @@ namespace DotX.Controls
 
             base.HitTest(result);
         }
+
+        protected override void OnInitialize()
+        {
+            if(Content is Widget w)
+                w.Initialize();
+        }
     }
 }
