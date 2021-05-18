@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using DotX.Interfaces;
 using DotX.Threading;
-using DotX.XOrg;
 using DotX.Data;
 using DotX.Attributes;
 
@@ -20,11 +19,6 @@ namespace DotX
                 Dispatcher.CurrentDispatcher.BeginInvoke(() => AddWindow(w), OperationPriority.Normal);
 
             CurrentApp._windows.Add(w);
-        }
-
-        private static IPlatform GetPlatform()
-        {
-            return new LinuxX11Platform();
         }
 
         private static void RegisterConverters()
@@ -44,9 +38,10 @@ namespace DotX
 
         public IPlatform Platform { get; }
         public IReadOnlyList<IRootVisual> Windows => _windows;
-        public Application()
+        
+        public Application(IPlatform platform)
         {
-            Platform = GetPlatform();
+            Platform = platform;
             CurrentApp = this;
             
             RegisterConverters();

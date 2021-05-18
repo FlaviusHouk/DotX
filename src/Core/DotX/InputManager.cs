@@ -19,7 +19,7 @@ namespace DotX
         private InputManager()
         {}
 
-        internal void DispatchPointerMove(Visual visualToTest, PointerMoveEventArgs pointerMoveEventArgs)
+        public void DispatchPointerMove(Visual visualToTest, PointerMoveEventArgs pointerMoveEventArgs)
         {
             var hitTest = new HitTestResult(pointerMoveEventArgs.X, 
                                             pointerMoveEventArgs.Y);

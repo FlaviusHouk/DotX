@@ -86,8 +86,8 @@ namespace DotX.Threading
             }
         }
 
-        internal void Initialize(Action waitFunc,
-                                 Action awakeFunc)
+        public void Initialize(Action waitFunc,
+                               Action awakeFunc)
         {
             _waitFunc = waitFunc;
             _awakeFunction = awakeFunc;

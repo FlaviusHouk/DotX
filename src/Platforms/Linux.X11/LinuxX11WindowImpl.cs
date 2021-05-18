@@ -5,7 +5,7 @@ using DotX.Interfaces;
 using Xlib = X11.Xlib;
 using DotX.Data;
 
-namespace DotX.XOrg
+namespace DotX.Platform.Linux.X
 {
     public class LinuxX11WindowImpl : IWindowImpl, IDisposable
     {

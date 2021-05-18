@@ -11,7 +11,7 @@ using System.Collections.ObjectModel;
 using DotX;
 using DotX.Data;
 
-namespace DotX.XOrg
+namespace DotX.Platform.Linux.X
 {
     public class LinuxX11Platform : IPlatform
     {
