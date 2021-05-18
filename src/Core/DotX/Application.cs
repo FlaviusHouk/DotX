@@ -13,7 +13,7 @@ namespace DotX
     {
         public static Application CurrentApp { get; private set; }
 
-        public static void AddWindow(Window w)
+        public static void AddWindow(IRootVisual w)
         {
             if(CurrentApp is null)
                 Dispatcher.CurrentDispatcher.BeginInvoke(() => AddWindow(w), OperationPriority.Normal);
@@ -38,11 +38,11 @@ namespace DotX
                 Converters.Converters.RegisterConverter(converter.Key, converter.Value);
         }
 
-        private readonly List<Window> _windows =
-            new List<Window>();
+        private readonly List<IRootVisual> _windows =
+            new();
 
         public IPlatform Platform { get; }
-        public IReadOnlyList<Window> Windows => _windows;
+        public IReadOnlyList<IRootVisual> Windows => _windows;
         public Application()
         {
             Platform = GetPlatform();
@@ -55,7 +55,7 @@ namespace DotX
 
         private void OnWindowClosed(WindowEventArgs obj)
         {
-            Window windowToRemove = _windows.First(w => w.WindowImpl == obj.Window);
+            IRootVisual windowToRemove = _windows.First(w => w.WindowImpl == obj.Window);
             _windows.Remove(windowToRemove);
 
             //TODO: Add ApplicationLifetime class

@@ -85,12 +85,8 @@ namespace DotX
                 //Don't like this solution. Should be refactored.
                 //Reason for it that we cannot get Resource value
                 //until visual tree is ready.
-                if(owner is Widget w)
-                {
-                    if(w.IsInitialized)
-                        handler.Changed(val);
-                }
-                else
+                if((owner is IInitializable w && w.IsInitialized) ||
+                   owner is not IInitializable)
                 {
                     handler.Changed(val);
                 }

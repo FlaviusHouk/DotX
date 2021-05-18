@@ -17,7 +17,8 @@ namespace DotX.Controls
 
         internal Rectangle DirtyArea { get; set; }
 
-        public Visual VisualParent { get; internal set; }
+        //It will be refactored after templates will be introduced.
+        public Visual VisualParent { get; set; }
 
         public bool IsMeasureDirty { get; internal set; } = true;
         public bool IsArrangeDirty { get; internal set; } = true;

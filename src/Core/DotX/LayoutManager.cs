@@ -1,7 +1,8 @@
 using System;
 using Cairo;
-using DotX.Controls;
+using DotX.Abstraction;
 using DotX.Threading;
+using DotX.Controls;
 
 namespace DotX
 {
@@ -49,13 +50,13 @@ namespace DotX
         {
             var originalVisual = visual;
 
-            while(visual is not Window && visual is not null)
+            while(visual is not IRootVisual && visual is not null)
                 visual = visual.VisualParent;
 
             if(visual is null)
                 return;
 
-            var window = (Window)visual;
+            var window = (IRootVisual)visual;
 
             if(!window.IsVisible)
                 return;

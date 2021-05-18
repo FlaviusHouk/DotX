@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using DotX.Controls;
+using DotX.Abstraction;
 
 namespace DotX.Styling
 {
@@ -46,16 +46,16 @@ namespace DotX.Styling
         {
             if(_typeName is not null)
             {
-                if(!_classes.Any() || obj is not Widget w)
+                if(!_classes.Any() || obj is not IStylable stylable)
                     return obj.GetType().Name == _typeName;
 
-                return MatchClasses(w);
+                return MatchClasses(stylable);
             }
 
             return false;
         }
 
-        private bool MatchClasses(Widget w)
+        private bool MatchClasses(IStylable w)
         {
             int i = 0, j = 0;
             foreach (var cls in w.Classes)

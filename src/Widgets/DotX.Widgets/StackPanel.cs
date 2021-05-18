@@ -75,17 +75,11 @@ namespace DotX.Controls
             size = size.Subtract(Padding);
 
             var firstChild = Children.First();
-            bool wasDirty = firstChild.IsMeasureDirty;
 
             size = MeasureChild(firstChild, size);
 
             foreach(var child in Children.Skip(1))
-            {
-                wasDirty |= child.IsMeasureDirty;
-                child.IsMeasureDirty |= wasDirty;
-
                 size = MeasureChild(child, size);
-            }
 
             return Merge(Children.Select(c => c is Widget w ?
                                                 w.DesiredSize.Add(w.Margin) :
@@ -101,17 +95,11 @@ namespace DotX.Controls
             size = size.Subtract(Padding);
 
             var firstChild = Children.First();
-            bool wasDirty = firstChild.IsArrangeDirty;
 
             size = ArrangeChild(firstChild, size);
 
             foreach(var child in Children.Skip(1))
-            {
-                wasDirty |= child.IsArrangeDirty;
-                child.IsArrangeDirty |= wasDirty;
-
                 size = ArrangeChild(child, size);
-            }
 
             return Merge(Children.Select(c => c is Widget w ?
                                                 w.RenderSize.Add(w.Margin) : 

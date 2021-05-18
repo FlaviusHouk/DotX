@@ -6,11 +6,13 @@ using DotX.Abstraction;
 using DotX.Brush;
 using DotX.Data;
 using DotX.Extensions;
+using DotX.Controls.Data;
+using DotX.Controls.Extensions;
 using DotX.Styling;
 
 namespace DotX.Controls
 {
-    public class Widget : Visual
+    public class Widget : Visual, IStylable, IInputElement, IInitializable
     {
         static Widget()
         {}

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using DotX.Controls;
 
 namespace DotX.XOrg
 {
@@ -185,7 +186,7 @@ namespace DotX.XOrg
                 var window = _windows.First(w => w.XWindow == motionEvent.window);
                 var windowControl = Application.CurrentApp.Windows.First(w => w.WindowImpl == window);
 
-                InputManager.Instance.DispatchPointerMove(windowControl, 
+                InputManager.Instance.DispatchPointerMove((Visual)windowControl, 
                                                           new PointerMoveEventArgs(motionEvent.x, 
                                                                                    motionEvent.y,
                                                                                    false));
@@ -202,7 +203,7 @@ namespace DotX.XOrg
                     var window = _windows.First(w => w.XWindow == crossingEvent.window);
                     var windowControl = Application.CurrentApp.Windows.First(w => w.WindowImpl == window);
 
-                    InputManager.Instance.DispatchPointerMove(windowControl, 
+                    InputManager.Instance.DispatchPointerMove((Visual)windowControl, 
                                                               new PointerMoveEventArgs(crossingEvent.x, 
                                                                                        crossingEvent.y,
                                                                                        true));

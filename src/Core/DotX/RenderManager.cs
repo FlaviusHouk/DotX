@@ -5,6 +5,7 @@ using System.Threading;
 using Cairo;
 using DotX.Controls;
 using DotX.Threading;
+using DotX.Abstraction;
 
 namespace DotX
 {
@@ -15,12 +16,12 @@ namespace DotX
 
         private readonly ManualResetEventSlim _threadLocker =
             new ManualResetEventSlim();
-        private readonly Dictionary<Window, (ImageSurface, object)> _windowBuffers =
-            new Dictionary<Window, (ImageSurface, object)>();
+        private readonly Dictionary<Visual, (ImageSurface, object)> _windowBuffers =
+            new Dictionary<Visual, (ImageSurface, object)>();
 
         //Add class/struct for it?
-        private readonly ConcurrentBag<(Visual, Window, Surface, Rectangle, object)> _visualsToUpdate =
-            new ConcurrentBag<(Visual, Window, Surface, Rectangle, object)>();
+        private readonly ConcurrentBag<(Visual, Surface, Surface, Rectangle, object)> _visualsToUpdate =
+            new ConcurrentBag<(Visual, Surface, Surface, Rectangle, object)>();
 
         public RenderManager(Dispatcher mainThread)
         {
@@ -31,7 +32,7 @@ namespace DotX
             _renderThread.Start();
         }
 
-        public void Invalidate(Window window,
+        public void Invalidate(IRootVisual root,
                                Visual visualToInvalidate,
                                Rectangle? area)
         {
@@ -40,27 +41,31 @@ namespace DotX
             ImageSurface windowBuffer;
             object locker;
             
-            (windowBuffer, locker) = InvalidateWindowBuffer(window);
+            (windowBuffer, locker) = InvalidateWindowBuffer((Visual)root);
 
-            _visualsToUpdate.Add((visualToInvalidate, window, windowBuffer, area.Value, locker));
+            _visualsToUpdate.Add((visualToInvalidate, 
+                                  root.WindowImpl.WindowSurface, 
+                                  windowBuffer, 
+                                  area.Value, 
+                                  locker));
 
             _threadLocker.Set();
         }
 
-        private (ImageSurface, object) InvalidateWindowBuffer(Window window)
+        private (ImageSurface, object) InvalidateWindowBuffer(Visual root)
         {
             ImageSurface bufferSurface;
             object locker;
 
-            if(!_windowBuffers.TryGetValue(window, out var pair))
+            if(!_windowBuffers.TryGetValue(root, out var pair))
             {
                 bufferSurface = new ImageSurface(Format.Argb32, 
-                                                 (int)window.RenderSize.Width,
-                                                 (int)window.RenderSize.Height);
+                                                 (int)root.RenderSize.Width,
+                                                 (int)root.RenderSize.Height);
                 
                 locker = new object();
 
-                _windowBuffers.Add(window,
+                _windowBuffers.Add(root,
                                    (bufferSurface, locker));
 
                 return (bufferSurface, locker);
@@ -68,10 +73,10 @@ namespace DotX
 
             (bufferSurface, locker) = pair;
 
-            if(bufferSurface.Width < window.RenderSize.Width ||
-               bufferSurface.Height < window.RenderSize.Height)
+            if(bufferSurface.Width < root.RenderSize.Width ||
+               bufferSurface.Height < root.RenderSize.Height)
             {
-                _windowBuffers.Remove(window);
+                _windowBuffers.Remove(root);
 
                 int newWidth = bufferSurface.Width * 2;
                 int newHeight = bufferSurface.Height * 2;
@@ -85,7 +90,7 @@ namespace DotX
                                                      newHeight);
                 }
 
-                _windowBuffers.Add(window, (bufferSurface, locker));
+                _windowBuffers.Add(root, (bufferSurface, locker));
             }
 
             return (bufferSurface, locker);
@@ -102,12 +107,12 @@ namespace DotX
                 }
 
                 Visual visualToRedraw;
-                Window owner;
+                Surface targetSurface;
                 Surface buffer;
                 Rectangle areaToUpdate;
                 object locker;
 
-                (visualToRedraw, owner, buffer, areaToUpdate, locker) = drawRequest;
+                (visualToRedraw, targetSurface, buffer, areaToUpdate, locker) = drawRequest;
 
                 if(buffer is null)
                     continue;
@@ -125,7 +130,7 @@ namespace DotX
 
                 _mainDispatcher.BeginInvoke(() => FlushToActualSurface(areaToUpdate, 
                                                                        buffer, 
-                                                                       owner.WindowImpl.WindowSurface,
+                                                                       targetSurface,
                                                                        locker), 
                                             OperationPriority.Render);
             }

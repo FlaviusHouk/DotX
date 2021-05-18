@@ -4,7 +4,7 @@ using DotX.Abstraction;
 
 namespace DotX.Controls
 {
-    public class Window : Control
+    public class Window : Control, IRootVisual
     {
         static Window()
         {
@@ -38,10 +38,8 @@ namespace DotX.Controls
 
         private void Resizing(int width, int height)
         {
-            IsMeasureDirty = true;
             Measure(new Rectangle(0,0, width, height));
 
-            IsArrangeDirty = true;
             Invalidate();
         }
 

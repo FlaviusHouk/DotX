@@ -1,7 +1,7 @@
 using System;
 using DotX.Styling;
 
-namespace DotX.Data
+namespace DotX.Controls.Data
 {
     internal class PriorityStyle : IComparable
     {
