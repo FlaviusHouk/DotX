@@ -3,7 +3,6 @@ using DotX.Interfaces;
 using DotX.Threading;
 using Xlib = X11.Xlib;
 using System.Runtime.InteropServices;
-using Mono.Unix.Native;
 using System.Threading;
 using System.Linq;
 using System.Collections.Generic;

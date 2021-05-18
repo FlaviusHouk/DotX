@@ -6,7 +6,6 @@
 
   <ItemGroup>
     <PackageReference Include="CairoSharp" Version="3.24.24.34" />
-    <PackageReference Include="Mono.Posix.NETStandard" Version="5.20.1-preview" />
   </ItemGroup>
 
 </Project>

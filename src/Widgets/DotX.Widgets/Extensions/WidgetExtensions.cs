@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using DotX;
-using DotX.Controls.Data;
+using DotX.Widgets.Data;
 using DotX.Extensions;
 
-namespace DotX.Controls.Extensions
+namespace DotX.Widgets.Extensions
 {
     public static class WidgetExtensions
     {

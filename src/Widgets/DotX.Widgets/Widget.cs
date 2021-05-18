@@ -6,11 +6,11 @@ using DotX.Interfaces;
 using DotX.Brush;
 using DotX.Data;
 using DotX.Extensions;
-using DotX.Controls.Data;
-using DotX.Controls.Extensions;
+using DotX.Widgets.Data;
+using DotX.Widgets.Extensions;
 using DotX.Styling;
 
-namespace DotX.Controls
+namespace DotX.Widgets
 {
     public class Widget : Visual, IStylable, IInputElement, IInitializable
     {

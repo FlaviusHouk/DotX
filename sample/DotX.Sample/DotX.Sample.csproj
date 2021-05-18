@@ -1,8 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\DotX\DotX.csproj" />
-    <ProjectReference Include="..\..\src\XAML\DotX.Xaml\DotX.Xaml.csproj" />
+    <ProjectReference Include="..\..\src\Core\DotX\DotX.csproj" />
+    <ProjectReference Include="..\..\src\Modules\DotX.Xaml\DotX.Xaml.csproj" />
+    <ProjectReference Include="..\..\src\Widgets\DotX.Widgets\DotX.Widgets.csproj" />
+    <ProjectReference Include="..\..\src\Platforms\Linux.X11\Linux.X11.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -10,6 +12,6 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
-  <Import Project="../../src/XAML/DotX.targets" />
+  <Import Project="../../src/DotX.targets" />
 
 </Project>

@@ -3,7 +3,7 @@ using Cairo;
 using System.Linq;
 using System;
 
-namespace DotX.Controls
+namespace DotX.Widgets
 {
     public class TextBlock : Widget
     {

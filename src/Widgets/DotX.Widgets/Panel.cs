@@ -6,7 +6,7 @@ using DotX.Interfaces;
 using DotX.Data;
 using DotX.Attributes;
 
-namespace DotX.Controls
+namespace DotX.Widgets
 {
     public abstract class Panel : Widget
     {

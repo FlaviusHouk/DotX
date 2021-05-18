@@ -5,7 +5,7 @@ using DotX.Data;
 using DotX.Extensions;
 using DotX.Attributes;
 
-namespace DotX.Controls
+namespace DotX.Widgets
 {
     public class Control : Widget
     {

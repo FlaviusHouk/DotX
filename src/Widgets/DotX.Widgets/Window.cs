@@ -3,7 +3,7 @@ using Cairo;
 using DotX.Interfaces;
 using DotX.Data;
 
-namespace DotX.Controls
+namespace DotX.Widgets
 {
     public class Window : Control, IRootVisual
     {

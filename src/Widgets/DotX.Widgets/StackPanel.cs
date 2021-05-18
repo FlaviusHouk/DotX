@@ -3,14 +3,8 @@ using System.Linq;
 using Cairo;
 using DotX.Extensions;
 
-namespace DotX.Controls
+namespace DotX.Widgets
 {
-    public enum Orientation
-    {
-        Vertical,
-        Horizontal
-    }
-
     public class StackPanel : Panel
     {
         private static Rectangle GetRestSize(Rectangle occupiedSize,
@@ -65,7 +59,7 @@ namespace DotX.Controls
             return new Rectangle(x, y, width, height);
         }
 
-        public Orientation Orientation { get; set; }
+        public Widgets.Orientation Orientation { get; set; }
 
         protected override Rectangle MeasureCore(Rectangle size)
         {

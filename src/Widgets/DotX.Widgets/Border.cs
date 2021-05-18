@@ -1,6 +1,6 @@
 using Cairo;
 
-namespace DotX.Controls
+namespace DotX.Widgets
 {
     public class Border : Control
     {

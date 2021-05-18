@@ -1,7 +1,5 @@
 ﻿using System;
-using DotX.Brush;
-using DotX.Controls;
-using DotX.Xaml;
+using DotX.Platform.Linux.X;
 
 namespace DotX.Sample
 {
@@ -9,7 +7,7 @@ namespace DotX.Sample
     {
         static void Main(string[] args)
         {
-            var app = new DotX.Application();
+            var app = new DotX.Application(new LinuxX11Platform());
 
             var mainWin = new MyWindow();
             
