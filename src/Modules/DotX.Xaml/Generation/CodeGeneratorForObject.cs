@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using DotX.Abstraction;
-using DotX.Controls;
+using DotX.Interfaces;
+using DotX;
 
 namespace DotX.Xaml.Generation
 {
-    public class CodeGeneratorForObject
+    /*public class CodeGeneratorForObject
     {
         private readonly string _className;
         private readonly string _ns;
@@ -118,5 +118,5 @@ namespace DotX.Xaml.Generation
 
             return name;
         }
-    }
+    }*/
 }

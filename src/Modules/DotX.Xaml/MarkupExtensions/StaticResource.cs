@@ -1,6 +1,6 @@
 using System;
-using DotX.Abstraction;
-using DotX.Controls;
+using DotX.Interfaces;
+using DotX;
 
 namespace DotX.Xaml.MarkupExtensions
 {
@@ -13,7 +13,7 @@ namespace DotX.Xaml.MarkupExtensions
             if(target is not Visual current)
                 throw new Exception();
 
-            if(target is Widget w)
+            if(target is IResourceOwner w)
             {
                 return new ResourcePropertyValue(Key, w);    
             }

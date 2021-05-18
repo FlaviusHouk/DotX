@@ -6,7 +6,7 @@ namespace DotX.Extensions
     public static class VisualExtensions
     {
         public static void TraverseTop<T>(this Visual current, Func<T, bool> traverser)
-            where T : Visual
+            where T : class
         {
             current = current.VisualParent;
             while(current is not null)

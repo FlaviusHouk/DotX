@@ -1,4 +1,4 @@
-using DotX.Abstraction;
+using DotX.Interfaces;
 
 namespace DotX.Xaml.MarkupExtensions
 {

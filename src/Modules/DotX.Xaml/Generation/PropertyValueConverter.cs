@@ -1,5 +1,6 @@
 using System;
-using DotX.Abstraction;
+using DotX.Interfaces;
+using DotX.Attributes;
 
 namespace DotX.Xaml.Generation
 {

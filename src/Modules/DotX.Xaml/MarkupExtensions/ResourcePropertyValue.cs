@@ -1,17 +1,17 @@
 using System;
-using DotX.Abstraction;
-using DotX.Controls;
+using DotX.Interfaces;
+using DotX;
 using DotX.Extensions;
 
 namespace DotX.Xaml.MarkupExtensions
 {
     internal class ResourcePropertyValue : IPropertyValue
     {
-        private readonly Widget _owner; 
+        private readonly IResourceOwner _owner; 
         private IPropertyValue _cachedValue;
         public string ResourceKey { get; }
         
-        public ResourcePropertyValue(string resourceKey, Widget owner)
+        public ResourcePropertyValue(string resourceKey, IResourceOwner owner)
         {
             ResourceKey = resourceKey;
             _owner = owner;
@@ -44,14 +44,16 @@ namespace DotX.Xaml.MarkupExtensions
 
         private void SetupCache<T>()
         {
-            T val = default;   
+            T val = default;  
+             
             if(_owner.Resources.TryGetValue(ResourceKey, out var resource) &&
                resource is T)
                {
                    _cachedValue = new PropertyValue<T>((T)resource);
                }
 
-            _owner.TraverseTop<Widget>(w => {
+            var visualOwner = (Visual)_owner;
+            visualOwner.TraverseTop<IResourceOwner>(w => {
                 if(w.Resources.TryGetValue(ResourceKey, out var res) &&
                    res is T)
                 {

@@ -3,7 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using DotX.Abstraction;
+using DotX.Interfaces;
+using DotX.Attributes;
 
 namespace DotX.Xaml
 {

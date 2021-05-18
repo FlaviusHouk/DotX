@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using DotX.Abstraction;
-using DotX.Controls;
+using DotX.Interfaces;
+using DotX;
+using DotX.Attributes;
 using DotX.Data;
 
 namespace DotX.Xaml.Generation
@@ -171,15 +172,31 @@ namespace DotX.Xaml.Generation
                 return;
 
             var targets = children.Select(c => c.Target);
-                
-            if(target is Panel panel)
+            MemberInfo memberToSet = target.GetType()
+                                           .GetMembers(BindingFlags.Instance)
+                                           .First(m => m.GetCustomAttribute<ContentPropertyAttribute>() is not null);
+
+            if (memberToSet.MemberType == MemberTypes.Property &&
+               memberToSet is PropertyInfo prop)
             {
-                foreach(var child in targets.Cast<Visual>())
-                    panel.AddChild(child);
-            }
-            else if(target is Control control)
-            {
-                control.Content = targets.Cast<Visual>().Single();
+                if(prop.PropertyType.GetInterface(nameof(System.Collections.IEnumerable)) is not null)
+                {
+                    var methodToInvoke = 
+                        target.GetType()
+                              .GetMethod("AddChild", 
+                                         BindingFlags.Instance | BindingFlags.Public);
+
+                    foreach (var child in targets.Cast<Visual>())
+                        methodToInvoke.Invoke(target, new [] { child });
+                }
+                else if (prop.PropertyType.IsAssignableFrom(typeof(Visual)))
+                {
+                    prop.SetValue(target, targets.Cast<Visual>().Single());
+                }
+                else
+                {
+                    throw new Exception();
+                }
             }
             else
             {
