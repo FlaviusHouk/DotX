@@ -1,6 +1,6 @@
 using Cairo;
 
-namespace DotX.Brush
+namespace DotX.Interfaces
 {
     public interface IBrush
     {

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using DotX.Controls;
+using DotX;
 using DotX.Controls.Data;
 using DotX.Extensions;
 

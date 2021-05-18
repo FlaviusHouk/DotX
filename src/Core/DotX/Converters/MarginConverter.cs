@@ -1,8 +1,9 @@
 using System;
 using System.Globalization;
 using System.Linq;
-using DotX.Abstraction;
+using DotX.Interfaces;
 using DotX.Data;
+using DotX.Attributes;
 
 namespace DotX.Converters
 {

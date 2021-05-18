@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace DotX.Abstraction
+namespace DotX.Interfaces
 {
     public interface IStylable
     {

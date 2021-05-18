@@ -1,5 +1,5 @@
 using System;
-using DotX.Abstraction;
+using DotX.Interfaces;
 
 namespace DotX
 {

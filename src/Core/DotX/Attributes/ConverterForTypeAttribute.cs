@@ -1,6 +1,6 @@
 using System;
 
-namespace DotX.Abstraction
+namespace DotX.Attributes
 {
     [AttributeUsage(AttributeTargets.Class)]
     public class ConverterForTypeAttribute : Attribute

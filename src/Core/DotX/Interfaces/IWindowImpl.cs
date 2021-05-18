@@ -1,7 +1,8 @@
 using System;
 using Cairo;
+using DotX.Data;
 
-namespace DotX.Abstraction
+namespace DotX.Interfaces
 {
     public delegate void RenderRequest(RenderEventArgs args);
     public delegate void ResizingDelegate (int width, int height);

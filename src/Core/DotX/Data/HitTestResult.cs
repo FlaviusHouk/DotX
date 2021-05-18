@@ -1,10 +1,7 @@
 using System.Collections.Generic;
-
-//Is it OK here?
-using DotX.Controls;
 using DotX.Data;
 
-namespace DotX.Abstraction
+namespace DotX.Data
 {
     public class HitTestResult
     {

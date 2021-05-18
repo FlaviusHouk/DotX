@@ -1,4 +1,4 @@
-namespace DotX.Abstraction
+namespace DotX.Interfaces
 {
     public interface IPropertyMetadata
     {

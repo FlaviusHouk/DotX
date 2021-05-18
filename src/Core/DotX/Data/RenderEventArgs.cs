@@ -1,6 +1,6 @@
 using System;
 
-namespace DotX.Abstraction
+namespace DotX.Data
 {
     public class RenderEventArgs : EventArgs
     {

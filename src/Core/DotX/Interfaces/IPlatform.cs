@@ -1,6 +1,7 @@
 using System;
+using DotX.Data;
 
-namespace DotX.Abstraction
+namespace DotX.Interfaces
 {
     public interface IPlatform : IDisposable
     {

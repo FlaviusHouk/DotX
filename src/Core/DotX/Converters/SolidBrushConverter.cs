@@ -1,6 +1,7 @@
 using System;
-using DotX.Abstraction;
+using DotX.Interfaces;
 using DotX.Brush;
+using DotX.Attributes;
 
 namespace DotX.Converters
 {

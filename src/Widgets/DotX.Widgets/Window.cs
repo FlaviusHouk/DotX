@@ -1,6 +1,7 @@
 using System;
 using Cairo;
-using DotX.Abstraction;
+using DotX.Interfaces;
+using DotX.Data;
 
 namespace DotX.Controls
 {

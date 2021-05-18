@@ -1,8 +1,9 @@
 using Cairo;
-using DotX.Abstraction;
+using DotX.Interfaces;
 using DotX.Extensions;
+using DotX.Data;
 
-namespace DotX.Controls
+namespace DotX
 {
     public abstract class Visual : CompositeObject
     {

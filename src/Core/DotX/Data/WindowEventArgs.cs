@@ -1,6 +1,7 @@
 using System;
+using DotX.Interfaces;
 
-namespace DotX.Abstraction
+namespace DotX.Data
 {
     public class WindowEventArgs : EventArgs
     {

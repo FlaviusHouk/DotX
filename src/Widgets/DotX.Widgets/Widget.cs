@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cairo;
-using DotX.Abstraction;
+using DotX.Interfaces;
 using DotX.Brush;
 using DotX.Data;
 using DotX.Extensions;

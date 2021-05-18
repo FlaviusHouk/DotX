@@ -1,5 +1,5 @@
 using System;
-using DotX.Abstraction;
+using DotX.Interfaces;
 using DotX.Threading;
 using Xlib = X11.Xlib;
 using System.Runtime.InteropServices;
@@ -8,7 +8,8 @@ using System.Threading;
 using System.Linq;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using DotX.Controls;
+using DotX;
+using DotX.Data;
 
 namespace DotX.XOrg
 {

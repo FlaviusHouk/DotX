@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cairo;
-using DotX.Abstraction;
+using DotX.Interfaces;
+using DotX.Data;
+using DotX.Attributes;
 
 namespace DotX.Controls
 {

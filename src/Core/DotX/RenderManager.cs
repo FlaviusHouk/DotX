@@ -3,9 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using Cairo;
-using DotX.Controls;
 using DotX.Threading;
-using DotX.Abstraction;
+using DotX.Interfaces;
 
 namespace DotX
 {

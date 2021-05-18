@@ -1,8 +1,9 @@
 using System;
 using System.Runtime.InteropServices;
 using Cairo;
-using DotX.Abstraction;
+using DotX.Interfaces;
 using Xlib = X11.Xlib;
+using DotX.Data;
 
 namespace DotX.XOrg
 {

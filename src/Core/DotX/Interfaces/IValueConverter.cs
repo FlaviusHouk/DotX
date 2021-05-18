@@ -1,6 +1,6 @@
 using System;
 
-namespace DotX.Abstraction
+namespace DotX.Interfaces
 {
     public interface IValueConverter
     {

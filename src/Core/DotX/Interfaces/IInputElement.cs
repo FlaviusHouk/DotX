@@ -1,4 +1,6 @@
-namespace DotX.Abstraction
+using DotX.Data;
+
+namespace DotX.Interfaces
 {
     public interface IInputElement
     {

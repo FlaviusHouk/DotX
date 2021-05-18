@@ -1,3 +1,4 @@
+using DotX.Interfaces;
 using Cairo;
 
 namespace DotX.Brush

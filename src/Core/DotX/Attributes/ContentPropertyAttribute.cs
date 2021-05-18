@@ -1,6 +1,6 @@
 using System;
 
-namespace DotX.Abstraction
+namespace DotX.Attributes
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class ContentPropertyAttribute : Attribute

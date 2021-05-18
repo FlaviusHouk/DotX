@@ -1,8 +1,7 @@
 using System;
 using Cairo;
-using DotX.Abstraction;
+using DotX.Interfaces;
 using DotX.Threading;
-using DotX.Controls;
 
 namespace DotX
 {

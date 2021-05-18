@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using DotX.Abstraction;
-using DotX.Controls;
+using DotX.Interfaces;
+using DotX.Data;
 
 namespace DotX
 {
