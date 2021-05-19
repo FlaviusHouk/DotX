@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <DefineConstants>TRACE_RENDER;TRACE_WINDOWING;TRACE_LAYOUT</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
