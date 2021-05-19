@@ -41,6 +41,7 @@ namespace DotX.Widgets
         {
             Measure(new Rectangle(0,0, width, height));
 
+            InvalidateArrange(true);
             Invalidate();
         }
 

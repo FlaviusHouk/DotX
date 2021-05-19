@@ -172,31 +172,23 @@ namespace DotX.Xaml.Generation
                 return;
 
             var targets = children.Select(c => c.Target);
-            MemberInfo memberToSet = target.GetType()
-                                           .GetMembers(BindingFlags.Instance)
-                                           .First(m => m.GetCustomAttribute<ContentPropertyAttribute>() is not null);
+            PropertyInfo memberToSet = target.GetType()
+                                             .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                                             .First(p => Attribute.IsDefined(p, typeof(ContentPropertyAttribute)));
 
-            if (memberToSet.MemberType == MemberTypes.Property &&
-               memberToSet is PropertyInfo prop)
+            if (memberToSet.PropertyType.GetInterface(nameof(System.Collections.IEnumerable)) is not null)
             {
-                if(prop.PropertyType.GetInterface(nameof(System.Collections.IEnumerable)) is not null)
-                {
-                    var methodToInvoke = 
-                        target.GetType()
-                              .GetMethod("AddChild", 
-                                         BindingFlags.Instance | BindingFlags.Public);
+                var methodToInvoke =
+                    target.GetType()
+                          .GetMethod("AddChild",
+                                     BindingFlags.Instance | BindingFlags.Public);
 
-                    foreach (var child in targets.Cast<Visual>())
-                        methodToInvoke.Invoke(target, new [] { child });
-                }
-                else if (prop.PropertyType.IsAssignableFrom(typeof(Visual)))
-                {
-                    prop.SetValue(target, targets.Cast<Visual>().Single());
-                }
-                else
-                {
-                    throw new Exception();
-                }
+                foreach (var child in targets.Cast<Visual>())
+                    methodToInvoke.Invoke(target, new[] { child });
+            }
+            else if (memberToSet.PropertyType.IsAssignableFrom(typeof(Visual)))
+            {
+                memberToSet.SetValue(target, targets.Cast<Visual>().Single());
             }
             else
             {

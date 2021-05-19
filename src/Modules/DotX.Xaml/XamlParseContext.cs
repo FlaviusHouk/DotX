@@ -14,9 +14,6 @@ namespace DotX.Xaml
 
         private XamlParseContext _parent;
 
-        private IList<string> _rootNamespaces =
-            new List<string>();
-
         private IList<XamlNamespace> _namespaces = 
             new List<XamlNamespace>();
 
@@ -39,26 +36,18 @@ namespace DotX.Xaml
             _namespaces.Add(ns);
         }
 
-        public void IncludeIntoDefault(string ns)
-        {
-            if(string.IsNullOrEmpty(ns))
-                throw new Exception();
-
-            _rootNamespaces.Add(ns);
-        }
-
         public Type LookupObjectByName(string objType, string ns)
         {
             if(ns == string.Empty)
             {
-                foreach(var includedNs in _rootNamespaces)
+                foreach(var includedNs in _namespaces.Where(n => string.IsNullOrEmpty(n.Name)))
                 {
                     string fullName = string.Format("{0}.{1}", 
-                                                    includedNs, 
+                                                    includedNs.ClrNamespace, 
                                                     objType);
 
                     //Ugly way with assembly name...
-                    if(TryLoad(fullName, "DotX", out var t))
+                    if(TryLoad(fullName, includedNs.AssemblyName, out var t))
                         return t;
                 }
             }

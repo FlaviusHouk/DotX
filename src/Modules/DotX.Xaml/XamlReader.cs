@@ -30,9 +30,9 @@ namespace DotX.Xaml
             _contexts.Push(XamlParseContext.CreateRootContext());
 
             //Add option to modify it by user
-            CurrentContext.IncludeIntoDefault("DotX.Styling");
-            CurrentContext.IncludeIntoDefault("DotX.Xaml.MarkupExtensions");
-            CurrentContext.IncludeIntoDefault("DotX.Brush");
+            CurrentContext.AddNamespace(new XamlNamespace(string.Empty, "DotX.Styling", "DotX"));
+            CurrentContext.AddNamespace(new XamlNamespace(string.Empty, "DotX.Xaml.MarkupExtensions", "DotX.Xaml"));
+            CurrentContext.AddNamespace(new XamlNamespace(string.Empty, "DotX.Brush", "DotX"));
         }
 
         public XamlObject Parse()
@@ -182,8 +182,7 @@ namespace DotX.Xaml
                 if(XamlNamespace.TryParse(ns.Key, ns.Value, out var xamlNs))
                     context.AddNamespace(xamlNs);
                 else
-                    context.IncludeIntoDefault(ns.Value);
-                    
+                    throw new Exception();
             }
         }
 

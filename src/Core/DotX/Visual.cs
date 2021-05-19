@@ -40,9 +40,10 @@ namespace DotX
             IsMeasureDirty = false;
         }
 
-        public void InvalidateArrange()
+        //Approach to set IsArrangeDirty should be developed
+        public void InvalidateArrange(bool force = false)
         {
-            if(!IsArrangeDirty)
+            if(!IsArrangeDirty && !force)
                 return;
 
             LayoutManager.Instance.InvalidateArrange(this);

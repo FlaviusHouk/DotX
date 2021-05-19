@@ -12,7 +12,7 @@ using DotX.Styling;
 
 namespace DotX.Widgets
 {
-    public class Widget : Visual, IStylable, IInputElement, IInitializable
+    public class Widget : Visual, IStylable, IInputElement, IInitializable, IResourceOwner
     {
         static Widget()
         {}
