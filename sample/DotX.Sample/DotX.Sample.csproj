@@ -5,6 +5,14 @@
     <ProjectReference Include="..\..\src\Modules\DotX.Xaml\DotX.Xaml.csproj" />
     <ProjectReference Include="..\..\src\Widgets\DotX.Widgets\DotX.Widgets.csproj" />
     <ProjectReference Include="..\..\src\Platforms\Linux.X11\Linux.X11.csproj" />
+    <ProjectReference Include="..\..\src\Modules\DotX.DI.abioc\DotX.DI.abioc.csproj" />
+    <ProjectReference Include="..\..\src\Modules\DotX.Logging.Serilog\DotX.Logging.Serilog.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="abioc" Version="0.8.0" />
+    <PackageReference Include="Serilog" Version="2.10.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
   </ItemGroup>
 
   <PropertyGroup>
