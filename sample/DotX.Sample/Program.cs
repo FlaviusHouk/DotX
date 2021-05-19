@@ -21,7 +21,8 @@ namespace DotX.Sample
     {
         static void Main(string[] args)
         {
-            var logger = new LoggerConfiguration().WriteTo.Console()
+            var logger = new LoggerConfiguration().MinimumLevel.Verbose()
+                                                  .WriteTo.Console()
                                                   .CreateLogger();
 
             var loggerWrapper = new SerilogWrapper(logger);
