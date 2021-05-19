@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <UsingTask TaskName="ProcessXamlTask" 
+             AssemblyFile="$(MSBuildThisFileDirectory)Modules/DotX.Xaml.MsBuild/bin/Debug/net5.0/DotX.Xaml.MsBuild.dll"/>
+
+  <ItemGroup>
+    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)XAML.xml" />
+    <AvailableItemName Include="XAMLDoc">
+      <Targets>XAML</Targets>
+    </AvailableItemName>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <CoreCompileDependsOn>XAML;$(CoreCompileDependsOn)</CoreCompileDependsOn>
+  </PropertyGroup>
+
+  <Target Name="XAML"
+          Returns="@(XAML->'%(Filename).g.cs')">
+    <PropertyGroup>
+      <NewCSFiles/>
+    </PropertyGroup>
+    
+    <ProcessXamlTask CurrentProject="$(MSBuildProjectFullPath)"
+                     InputFiles="@(XAML)">
+      <Output TaskParameter="FilesToAdd" PropertyName="NewCSFiles"/>
+    </ProcessXamlTask>
+
+    <ItemGroup>
+      <Compile Include="$(NewCSFiles)"/>
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <XAML Include="**/*.xaml"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="@(XAML)"/>
+  </ItemGroup>
+</Project>

@@ -1,7 +1,4 @@
-using System.IO;
-using DotX.Controls;
-using DotX.Xaml;
-using DotX.Xaml.Generation;
+using DotX.Widgets;
 
 namespace DotX.Sample
 {
