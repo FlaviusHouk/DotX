@@ -56,6 +56,8 @@ namespace DotX.Platform.Linux.X
                 return;
             }
 
+            var connection = Xlib.XOpenDisplay(null);
+
             IntPtr ev = Marshal.AllocHGlobal(24 * sizeof(long));
             try
             {
@@ -63,22 +65,21 @@ namespace DotX.Platform.Linux.X
                 {
                     message_type = X11.Atom.None,
                     window = _windows[0].XWindow,
-                    display = Display,
+                    display = connection,
                     type = (int)X11.Event.ClientMessage,
                     format = 32
                 };
 
                 Marshal.StructureToPtr(msg, ev, false);
 
-                X11.Status status = Xlib.XSendEvent(Display, _windows[0].XWindow, true, 0, ev);
+                X11.Status status = Xlib.XSendEvent(connection, _windows[0].XWindow, true, 0, ev);
                 Services.Logger.LogWindowingSystemEvent("Message to XOrg sent. Status - {0}", status);
             }
             finally
             {
                 Marshal.FreeHGlobal(ev);
+                Xlib.XCloseDisplay(connection);
             }
-
-            
         }
 
         private int OnError(IntPtr display, ref X11.XErrorEvent ev)
@@ -132,7 +133,7 @@ namespace DotX.Platform.Linux.X
 
         private void WaitForEvent(Dispatcher d, IntPtr ev)
         {
-            Services.Logger.LogWindowingSystemEvent("Waiting for X1 events...");
+            Services.Logger.LogWindowingSystemEvent("Waiting for X11 events...");
             Xlib.XNextEvent(Display, ev);
 
             var xevent = Marshal.PtrToStructure<X11.XAnyEvent>(ev);

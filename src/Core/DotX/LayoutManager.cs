@@ -1,6 +1,7 @@
 using System;
 using Cairo;
 using DotX.Interfaces;
+using DotX.Rendering;
 using DotX.Threading;
 
 namespace DotX

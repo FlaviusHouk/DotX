@@ -6,7 +6,7 @@ using DotX.Threading;
 using DotX.Interfaces;
 using DotX.Extensions;
 
-namespace DotX
+namespace DotX.Rendering
 {
     internal class RenderManager
     {
@@ -16,11 +16,10 @@ namespace DotX
         private readonly ManualResetEventSlim _threadLocker =
             new ManualResetEventSlim();
         private readonly Dictionary<Visual, (ImageSurface, object)> _windowBuffers =
-            new Dictionary<Visual, (ImageSurface, object)>();
+            new();
 
-        //Add class/struct for it?
-        private readonly ConcurrentBag<(Visual, Surface, Surface, Rectangle, object)> _visualsToUpdate =
-            new ConcurrentBag<(Visual, Surface, Surface, Rectangle, object)>();
+        private readonly ConcurrentBag<RenderRequest> _visualsToUpdate =
+            new ();
 
         public RenderManager(Dispatcher mainThread)
         {
@@ -44,13 +43,15 @@ namespace DotX
             
             (windowBuffer, locker) = InvalidateWindowBuffer((Visual)root);
 
-            Services.Logger.LogRender("Buffer surface has size {0}x{1}.", windowBuffer.Width, windowBuffer.Handle);
+            Services.Logger.LogRender("Buffer surface has size {0}x{1}.", 
+                                      windowBuffer.Width, 
+                                      windowBuffer.Height);
 
-            _visualsToUpdate.Add((visualToInvalidate, 
-                                  root.WindowImpl.WindowSurface, 
-                                  windowBuffer, 
-                                  area.Value, 
-                                  locker));
+            _visualsToUpdate.Add(new RenderRequest(visualToInvalidate, 
+                                                   root.WindowImpl.WindowSurface, 
+                                                   windowBuffer, 
+                                                   area.Value, 
+                                                   locker));
 
             _threadLocker.Set();
         }
@@ -122,35 +123,27 @@ namespace DotX
                     _threadLocker.Wait();
                 }
 
-                Visual visualToRedraw;
-                Surface targetSurface;
-                Surface buffer;
-                Rectangle areaToUpdate;
-                object locker;
-
-                (visualToRedraw, targetSurface, buffer, areaToUpdate, locker) = drawRequest;
-
-                if(buffer is null)
+                if(drawRequest is null)
                     continue;
 
-                lock(locker)
+                lock(drawRequest.Locker)
                 {
                     Services.Logger.LogRender("Buffer locked. Starting draw cycle...");
 
-                    using (var context = new Context(buffer))
+                    using (var context = new Context(drawRequest.BufferSurface))
                     {
-                        context.Rectangle(visualToRedraw.RenderSize);
+                        context.Rectangle(drawRequest.VisualToInvalidate.RenderSize);
                         context.Clip();
 
-                        visualToRedraw.Render(context);
+                        drawRequest.VisualToInvalidate.Render(context);
                     }
                 }
 
                 Services.Logger.LogRender("Querying buffer swap...");
-                _mainDispatcher.BeginInvoke(() => FlushToActualSurface(areaToUpdate, 
-                                                                       buffer, 
-                                                                       targetSurface,
-                                                                       locker), 
+                _mainDispatcher.BeginInvoke(() => FlushToActualSurface(drawRequest.AreaToUpdate, 
+                                                                       drawRequest.BufferSurface, 
+                                                                       drawRequest.TargetSurface,
+                                                                       drawRequest.Locker), 
                                             OperationPriority.Render);
             }
         }

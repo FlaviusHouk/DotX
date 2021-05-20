@@ -4,6 +4,7 @@ using Cairo;
 using DotX.Interfaces;
 using Xlib = X11.Xlib;
 using DotX.Data;
+using DotX.Extensions;
 
 namespace DotX.Platform.Linux.X
 {
@@ -95,7 +96,8 @@ namespace DotX.Platform.Linux.X
                 if(oldWidth == width &&
                    oldHeight == height)
                 {
-                   return;
+                    Services.Logger.LogWindowingSystemEvent("Having resize request, but size didn't change. Ignoring.");
+                    return;
                 }
 
                 _cairoSurface.SetSize(width, height);
