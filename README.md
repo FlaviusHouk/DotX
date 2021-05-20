@@ -4,6 +4,6 @@ This projects aims to be lightweight Linux-first library for creating GUI with m
 
 ## Compliling
 
-Firstly you have to compile ```src/XAML/DotX.Xaml.MsBuild/DotX.Xaml.MsBuild.csproj```. If you work with framework other than ```net5``` you should also fix path (AssemblyFile attribute) in ```src/XAML/DotX.targets```. After it you can build ```sample/DotX.Sample/DotX.Sample.csproj```. This will build sample application that might be executed.
+Firstly you have to compile ```src/Modules/DotX.Xaml.MsBuild/DotX.Xaml.MsBuild.csproj```. If you work with framework other than ```net5``` you should also fix path (AssemblyFile attribute) in ```src/DotX.targets```. After it you can build ```sample/DotX.Sample/DotX.Sample.csproj```. This will build sample application that might be executed.
 
 Currently it will work only on Linux with XOrg installed (maybe Wayland session will also work with XWayland). It requires installed Cairo (rendering), Pango (font processing) and Xlib (communication with XOrg).
