@@ -5,6 +5,7 @@ using DotX.Interfaces;
 using Xlib = X11.Xlib;
 using DotX.Data;
 using DotX.Extensions;
+using DotX.Brush;
 
 namespace DotX.Platform.Linux.X
 {
@@ -104,6 +105,30 @@ namespace DotX.Platform.Linux.X
             }
 
             Resizing?.Invoke(width, height);
+        }
+
+        public void UpdateBackground(IBrush brush)
+        {
+            if(brush is not SolidColorBrush solidColor)
+                return;
+
+            X11.XColor color = new X11.XColor();
+            var colormap = Xlib.XDefaultColormap(_platform.Display,
+                                                 Xlib.XDefaultScreen(_platform.Display));
+
+            var status = Xlib.XParseColor(_platform.Display,
+                            colormap,
+                            $"RGBi:{solidColor.Red}/{solidColor.Green}/{solidColor.Blue}",
+                            ref color);
+
+            //Not sure if XLib.XFreeColors should be called here.
+            //The API is different and XColor is allocated by the .Net
+            //It is probably should be called to remove Colormap entry
+            status = Xlib.XAllocColor(_platform.Display, colormap, ref color);
+
+            Xlib.XSetWindowBackground(_platform.Display,
+                                      XWindow,
+                                      color.pixel);
         }
 
         public void Dispose()

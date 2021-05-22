@@ -12,6 +12,8 @@ namespace DotX.Interfaces
 
         void Resize(int width, int height);
 
+        void UpdateBackground(IBrush brush);
+
         void Close();
         
         Surface WindowSurface { get; }

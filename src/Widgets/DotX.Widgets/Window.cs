@@ -11,6 +11,10 @@ namespace DotX.Widgets
         {
             CompositeObjectProperty.OverrideProperty<bool, Window>(IsVisibleProperty,
                                                                    false);
+
+            CompositeObjectProperty.OverrideProperty<IBrush, Window>(BackgroundProperty,
+                                                                     default,
+                                                                     changeValueFunc: (wind, oldVal, newVal) => wind.WindowImpl.UpdateBackground(newVal));
         }
 
         //It should be complex figure but for now let it be as just rectangle.
