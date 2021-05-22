@@ -13,9 +13,14 @@ namespace DotX.Widgets
                                                                    false);
         }
 
+        //It should be complex figure but for now let it be as just rectangle.
+        private Rectangle? _dirtyArea;
+
         public event Action<Window> Closed;
 
         public IWindowImpl WindowImpl { get; }
+
+        public Rectangle? DirtyArea => _dirtyArea;
 
         public Window()
         {
@@ -39,6 +44,7 @@ namespace DotX.Widgets
 
         private void Resizing(int width, int height)
         {
+            _dirtyArea = default;
             Measure(new Rectangle(0,0, width, height));
 
             InvalidateArrange(true);
@@ -60,7 +66,29 @@ namespace DotX.Widgets
 
         private void WindowDirty(RenderEventArgs args)
         {
-            Invalidate(new Rectangle(args.X, args.Y, args.Width, args.Height));
+            var dirtyRect = new Rectangle(args.X, args.Y, args.Width, args.Height);
+            if(_dirtyArea is null)
+            {
+                _dirtyArea = dirtyRect;
+            }
+            else
+            {
+                double left = Math.Min(_dirtyArea.Value.X, dirtyRect.X);
+                double top =  Math.Min(_dirtyArea.Value.Y, dirtyRect.Y);
+
+                double right = Math.Max(_dirtyArea.Value.X + _dirtyArea.Value.Width,
+                                        dirtyRect.X + dirtyRect.Width);
+
+                double bottom = Math.Max(_dirtyArea.Value.Y + _dirtyArea.Value.Height,
+                                        dirtyRect.Y + dirtyRect.Height);
+
+                _dirtyArea = new Rectangle(left,
+                                           top,
+                                           right - left,
+                                           bottom - top);
+            }
+
+            Invalidate(dirtyRect);
         }
 
         protected override Rectangle MeasureCore(Rectangle size)

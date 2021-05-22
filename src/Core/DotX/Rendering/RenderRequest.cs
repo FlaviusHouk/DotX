@@ -6,6 +6,7 @@ namespace DotX.Rendering
                                   Surface TargetSurface, 
                                   Surface BufferSurface, 
                                   Rectangle AreaToUpdate, 
-                                  object Locker)
+                                  object Locker,
+                                  bool Redraw = true)
     {}
 }

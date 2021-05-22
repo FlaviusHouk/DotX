@@ -22,7 +22,7 @@ namespace DotX.Sample
         static void Main(string[] args)
         {
             var logger = new LoggerConfiguration().MinimumLevel.Verbose()
-                                                  .WriteTo.Console()
+                                                  .WriteTo.Console(outputTemplate: "{Timestamp:dd/MM/yy HH:mm:ss.fff}\t[{Level:u3}]\t{Message}{NewLine}{Exception}")
                                                   .CreateLogger();
 
             var loggerWrapper = new SerilogWrapper(logger);

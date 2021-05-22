@@ -1,3 +1,5 @@
+using Cairo;
+
 namespace DotX.Interfaces
 {
     public interface IRootVisual
@@ -5,6 +7,10 @@ namespace DotX.Interfaces
         IWindowImpl WindowImpl { get; }
 
         bool IsVisible { get; }
+
+        //TODO: Add posibility to set
+        //with RenderManager after render.
+        Rectangle? DirtyArea { get; }
 
         void Show();
     }

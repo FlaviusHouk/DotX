@@ -18,7 +18,7 @@ namespace DotX.Rendering
         private readonly Dictionary<Visual, (ImageSurface, object)> _windowBuffers =
             new();
 
-        private readonly ConcurrentBag<RenderRequest> _visualsToUpdate =
+        private readonly ConcurrentBag<RenderRequest> _renderQueue =
             new ();
 
         public RenderManager(Dispatcher mainThread)
@@ -47,11 +47,12 @@ namespace DotX.Rendering
                                       windowBuffer.Width, 
                                       windowBuffer.Height);
 
-            _visualsToUpdate.Add(new RenderRequest(visualToInvalidate, 
-                                                   root.WindowImpl.WindowSurface, 
-                                                   windowBuffer, 
-                                                   area.Value, 
-                                                   locker));
+            _renderQueue.Add(new RenderRequest(visualToInvalidate, 
+                                               root.WindowImpl.WindowSurface, 
+                                               windowBuffer, 
+                                               area.Value, 
+                                               locker,
+                                               root.DirtyArea is null));
 
             _threadLocker.Set();
         }
@@ -116,7 +117,7 @@ namespace DotX.Rendering
         {
             while(true)
             {
-                if(!_visualsToUpdate.TryTake(out var drawRequest))
+                if(!_renderQueue.TryTake(out var drawRequest))
                 {
                     Services.Logger.LogRender("No elements to render. Blocking...");
                     _threadLocker.Reset();
@@ -126,17 +127,24 @@ namespace DotX.Rendering
                 if(drawRequest is null)
                     continue;
 
-                lock(drawRequest.Locker)
+                if (drawRequest.Redraw)
                 {
-                    Services.Logger.LogRender("Buffer locked. Starting draw cycle...");
-
-                    using (var context = new Context(drawRequest.BufferSurface))
+                    lock (drawRequest.Locker)
                     {
-                        context.Rectangle(drawRequest.VisualToInvalidate.RenderSize);
-                        context.Clip();
+                        Services.Logger.LogRender("Buffer locked. Starting draw cycle...");
 
-                        drawRequest.VisualToInvalidate.Render(context);
+                        using (var context = new Context(drawRequest.BufferSurface))
+                        {
+                            context.Rectangle(drawRequest.VisualToInvalidate.RenderSize);
+                            context.Clip();
+
+                            drawRequest.VisualToInvalidate.Render(context);
+                        }
                     }
+                }
+                else
+                {
+                    Services.Logger.LogRender("Skip redraw. Renew exposed area.");
                 }
 
                 Services.Logger.LogRender("Querying buffer swap...");
