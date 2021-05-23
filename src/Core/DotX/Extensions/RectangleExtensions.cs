@@ -30,5 +30,13 @@ namespace DotX.Extensions
             return rectangle.X < p.X && rectangle.X + rectangle.Width > p.X &&
                    rectangle.Y < p.Y && rectangle.Y + rectangle.Height > p.Y;
         }
+
+        public static bool Contains (this Rectangle rectangle, Rectangle possibleChild)
+        {
+            return rectangle.X <= possibleChild.X &&
+                   rectangle.X + rectangle.Width >= possibleChild.X + possibleChild.Width &&
+                   rectangle.Y <= possibleChild.Y &&
+                   rectangle.Y + rectangle.Height >= possibleChild.Y + possibleChild.Height;
+        }
     }
 }

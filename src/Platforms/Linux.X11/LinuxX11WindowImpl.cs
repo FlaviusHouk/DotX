@@ -117,9 +117,9 @@ namespace DotX.Platform.Linux.X
                                                  Xlib.XDefaultScreen(_platform.Display));
 
             var status = Xlib.XParseColor(_platform.Display,
-                            colormap,
-                            $"RGBi:{solidColor.Red}/{solidColor.Green}/{solidColor.Blue}",
-                            ref color);
+                                          colormap,
+                                          $"RGBi:{solidColor.Red}/{solidColor.Green}/{solidColor.Blue}",
+                                          ref color);
 
             //Not sure if XLib.XFreeColors should be called here.
             //The API is different and XColor is allocated by the .Net

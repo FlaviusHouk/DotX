@@ -21,6 +21,9 @@ namespace DotX.Rendering
         private readonly ConcurrentBag<RenderRequest> _renderQueue =
             new ();
 
+        private readonly ConcurrentQueue<RenderRequest> _pendingRequests =
+            new ();
+
         public RenderManager(Dispatcher mainThread)
         {
             _mainDispatcher = mainThread;
@@ -47,12 +50,26 @@ namespace DotX.Rendering
                                       windowBuffer.Width, 
                                       windowBuffer.Height);
 
-            _renderQueue.Add(new RenderRequest(visualToInvalidate, 
+            var newRequest = new RenderRequest(visualToInvalidate, 
                                                root.WindowImpl.WindowSurface, 
                                                windowBuffer, 
                                                area.Value, 
                                                locker,
-                                               root.DirtyArea is null));
+                                               root.DirtyArea is null);
+
+            if(newRequest.Redraw)
+            {
+                while(_pendingRequests.TryPeek(out var request) &&
+                      request is not null &&
+                      !request.Redraw)
+                {
+                    request.Cancel();
+
+                    _pendingRequests.TryDequeue(out var _);
+                }
+            }
+
+            _renderQueue.Add(newRequest);
 
             _threadLocker.Set();
         }
@@ -117,28 +134,28 @@ namespace DotX.Rendering
         {
             while(true)
             {
-                if(!_renderQueue.TryTake(out var drawRequest))
+                if(!_renderQueue.TryTake(out var renderRequest))
                 {
                     Services.Logger.LogRender("No elements to render. Blocking...");
                     _threadLocker.Reset();
                     _threadLocker.Wait();
                 }
 
-                if(drawRequest is null)
+                if(renderRequest is null)
                     continue;
 
-                if (drawRequest.Redraw)
+                if (renderRequest.Redraw)
                 {
-                    lock (drawRequest.Locker)
+                    lock (renderRequest.Locker)
                     {
                         Services.Logger.LogRender("Buffer locked. Starting draw cycle...");
 
-                        using (var context = new Context(drawRequest.BufferSurface))
+                        using (var context = new Context(renderRequest.BufferSurface))
                         {
-                            context.Rectangle(drawRequest.VisualToInvalidate.RenderSize);
+                            context.Rectangle(renderRequest.VisualToInvalidate.RenderSize);
                             context.Clip();
 
-                            drawRequest.VisualToInvalidate.Render(context);
+                            renderRequest.VisualToInvalidate.Render(context);
                         }
                     }
                 }
@@ -148,29 +165,32 @@ namespace DotX.Rendering
                 }
 
                 Services.Logger.LogRender("Querying buffer swap...");
-                _mainDispatcher.BeginInvoke(() => FlushToActualSurface(drawRequest.AreaToUpdate, 
-                                                                       drawRequest.BufferSurface, 
-                                                                       drawRequest.TargetSurface,
-                                                                       drawRequest.Locker), 
+                _pendingRequests.Enqueue(renderRequest);
+                _mainDispatcher.BeginInvoke(() => FlushToActualSurface(renderRequest), 
                                             OperationPriority.Render);
             }
         }
 
-        private void FlushToActualSurface(Rectangle area, 
-                                          Surface bufferSurface,
-                                          Surface actualSurface,
-                                          object locker)
+        private void FlushToActualSurface(RenderRequest request)
         {
+            if(request.IsCanceled)
+            {
+                Services.Logger.LogRender("Request is canceled. Skipping.");
+                return;
+            }
+
             Services.Logger.LogRender("Swapping buffers...");
             
-            using var context = new Context(actualSurface);
+            using var context = new Context(request.TargetSurface);
             
-            lock(locker)
+            lock(request.Locker)
             {
-                context.SetSource(bufferSurface);
-                context.Rectangle(area);
+                context.SetSource(request.BufferSurface);
+                context.Rectangle(request.AreaToUpdate);
                 context.Fill();
             }
+
+            _pendingRequests.TryDequeue(out var _);
         }
     }
 }
