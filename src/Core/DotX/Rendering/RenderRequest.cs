@@ -1,13 +1,12 @@
 using Cairo;
+using DotX.Interfaces;
 using System.Threading;
 
 namespace DotX.Rendering
 {
     internal record RenderRequest(Visual VisualToInvalidate, 
-                                  Surface TargetSurface, 
-                                  Surface BufferSurface, 
-                                  Rectangle AreaToUpdate, 
-                                  object Locker,
+                                  IRootVisual Root,
+                                  Rectangle AreaToUpdate,
                                   bool Redraw = true)
     {
         private int _isCanceled;
