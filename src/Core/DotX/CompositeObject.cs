@@ -1,4 +1,5 @@
 using System.Linq;
+using DotX.PropertySystem;
 
 namespace DotX
 {

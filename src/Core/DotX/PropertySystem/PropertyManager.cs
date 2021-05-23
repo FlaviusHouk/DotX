@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DotX
+namespace DotX.PropertySystem
 {
     internal class PropertyManager
     {

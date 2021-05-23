@@ -4,6 +4,7 @@ using DotX.Interfaces;
 using DotX.Data;
 using DotX.Extensions;
 using DotX.Attributes;
+using DotX.PropertySystem;
 
 namespace DotX.Widgets
 {

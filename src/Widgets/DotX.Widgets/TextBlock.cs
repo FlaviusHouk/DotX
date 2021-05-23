@@ -2,6 +2,7 @@ using Pango;
 using Cairo;
 using System.Linq;
 using System;
+using DotX.PropertySystem;
 
 namespace DotX.Widgets
 {

@@ -2,6 +2,7 @@ using System;
 using DotX.Interfaces;
 using DotX;
 using DotX.Extensions;
+using DotX.PropertySystem;
 
 namespace DotX.Xaml.MarkupExtensions
 {

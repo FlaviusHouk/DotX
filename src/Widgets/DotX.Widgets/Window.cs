@@ -2,6 +2,7 @@ using System;
 using Cairo;
 using DotX.Interfaces;
 using DotX.Data;
+using DotX.PropertySystem;
 
 namespace DotX.Widgets
 {

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using DotX.Interfaces;
+using DotX.PropertySystem;
 
 namespace DotX.Styling
 {

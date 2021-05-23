@@ -1,3 +1,5 @@
+using DotX.PropertySystem;
+
 namespace DotX.Interfaces
 {
     public interface IPropertyMetadata

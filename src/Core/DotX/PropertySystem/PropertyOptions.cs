@@ -1,6 +1,6 @@
 using System;
 
-namespace DotX
+namespace DotX.PropertySystem
 {
     [Flags]
     public enum PropertyOptions

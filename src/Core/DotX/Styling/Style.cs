@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using DotX.PropertySystem;
 
 namespace DotX.Styling
 {

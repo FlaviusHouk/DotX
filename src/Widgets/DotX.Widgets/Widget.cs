@@ -9,6 +9,7 @@ using DotX.Extensions;
 using DotX.Widgets.Data;
 using DotX.Widgets.Extensions;
 using DotX.Styling;
+using DotX.PropertySystem;
 
 namespace DotX.Widgets
 {

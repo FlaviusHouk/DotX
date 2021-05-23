@@ -1,8 +1,7 @@
 using System;
-using System.Collections.Generic;
 using DotX.Interfaces;
 
-namespace DotX
+namespace DotX.PropertySystem
 {
     public class PropertyMetadata<TOwner, TValue> : IPropertyMetadata<TValue>
         where TOwner : CompositeObject 

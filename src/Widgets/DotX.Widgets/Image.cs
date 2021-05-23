@@ -1,5 +1,6 @@
 using Cairo;
 using DotX.Extensions;
+using DotX.PropertySystem;
 
 namespace DotX.Widgets
 {

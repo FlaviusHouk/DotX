@@ -1,7 +1,7 @@
 using System;
 using DotX.Interfaces;
 
-namespace DotX
+namespace DotX.PropertySystem
 {
     public class PropertyValue<T> : IPropertyValue
     {
