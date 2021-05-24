@@ -20,7 +20,10 @@ namespace DotX.Widgets
         
         public static readonly CompositeObjectProperty WidthProperty = 
             CompositeObjectProperty.RegisterProperty<int, Widget>(nameof(Width),
-                                                                  PropertyOptions.Inherits,
+                                                                  PropertyOptions.Inherits |
+                                                                  PropertyOptions.AffectsMeaure |
+                                                                  PropertyOptions.AffectsArrange |
+                                                                  PropertyOptions.AffectsRender,
                                                                   coerceFunc: CoerceWidth);
 
         private static int CoerceWidth(CompositeObject obj, int value)
@@ -30,7 +33,10 @@ namespace DotX.Widgets
 
         public static readonly CompositeObjectProperty HeightProperty = 
             CompositeObjectProperty.RegisterProperty<int, Widget>(nameof(Height),
-                                                                  PropertyOptions.Inherits,
+                                                                  PropertyOptions.Inherits |
+                                                                  PropertyOptions.AffectsMeaure |
+                                                                  PropertyOptions.AffectsArrange |
+                                                                  PropertyOptions.AffectsRender,
                                                                   coerceFunc: CoerceWidth);
 
         public static readonly CompositeObjectProperty BackgroundProperty =
@@ -48,13 +54,11 @@ namespace DotX.Widgets
 
         public static readonly CompositeObjectProperty MarginProperty =
             CompositeObjectProperty.RegisterProperty<Margin, Widget>(nameof(Margin),
-                                                                     PropertyOptions.Inherits,
-                                                                     new Margin(),
-                                                                     changeValueFunc: (w, o, n) => 
-                                                                     {
-                                                                         w.InvalidateMeasure();
-                                                                         w.Invalidate();
-                                                                     });
+                                                                     PropertyOptions.Inherits |
+                                                                     PropertyOptions.AffectsMeaure |
+                                                                     PropertyOptions.AffectsArrange |
+                                                                     PropertyOptions.AffectsRender,
+                                                                     defaultValue: new Margin());
 
         public static readonly CompositeObjectProperty PaddingProperty =
             CompositeObjectProperty.RegisterProperty<Margin, Widget>(nameof(Padding),
@@ -141,6 +145,20 @@ namespace DotX.Widgets
         {
             if(!IsVisible)
                 new Rectangle();
+
+            double width = size.Width;
+            double height = size.Height;
+
+            if(IsPropertySet(WidthProperty))
+                width = Width;
+            
+            if(IsPropertySet(HeightProperty))
+                height = Height;
+
+            size = new Rectangle(size.X,
+                                 size.Y,
+                                 width,
+                                 height);
 
             return size.Subtract(Padding);
         }

@@ -10,6 +10,7 @@ namespace DotX.PropertySystem
 
     public class CompositeObjectProperty : IEquatable<CompositeObjectProperty>
     {
+        private const PropertyOptions GeneralOptions = PropertyOptions.Inherits;
         public static IPropertyValue UnsetValue => ValueStorage.UnsetObject;
 
         public static CompositeObjectProperty RegisterProperty<TVal, TOwner>(string propName,
@@ -19,13 +20,28 @@ namespace DotX.PropertySystem
                                                                              Action<TOwner, TVal, TVal> changeValueFunc = default)
             where TOwner : CompositeObject
         {
+            IPropertyMetadata metadata;
+            if((options & ~GeneralOptions) != 0)
+            {
+                metadata = 
+                    new VisualPropertyMetadata<TOwner, TVal>(options,
+                                                             defaultValue,
+                                                             coerceFunc,
+                                                             changeValueFunc);
+            }
+            else
+            {
+                metadata = 
+                    new PropertyMetadata<TOwner, TVal>(options,
+                                                       defaultValue,
+                                                       coerceFunc,
+                                                       changeValueFunc);
+            }
+
             var prop = 
                 new CompositeObjectProperty(propName,
                                             typeof(TVal),
-                                            options,
-                                            new PropertyMetadata<TOwner, TVal>(defaultValue,
-                                                                               coerceFunc,
-                                                                               changeValueFunc));
+                                            metadata);
 
             PropertyManager.Instance.RegisterProperty<TOwner>(prop);
             
@@ -44,8 +60,8 @@ namespace DotX.PropertySystem
             var overridenProp = 
                 new CompositeObjectProperty(prop.PropName,
                                             prop.PropertyType,
-                                            prop.Options,
-                                            new PropertyMetadata<TOwner, TVal>(value,
+                                            new PropertyMetadata<TOwner, TVal>(prop.Metadata.Options,
+                                                                               value,
                                                                                coerceFunc,
                                                                                changeValueFunc));
 
@@ -54,17 +70,14 @@ namespace DotX.PropertySystem
 
         public string PropName { get; }
         public Type PropertyType { get; }
-        public PropertyOptions Options { get; }
         public IPropertyMetadata Metadata { get; }
 
         protected CompositeObjectProperty(string propName,
                                           Type propertyType,
-                                          PropertyOptions options,
                                           IPropertyMetadata metadata)
         {
             PropName = propName;
             PropertyType = propertyType;
-            Options = options;
             Metadata = metadata;
         }
 

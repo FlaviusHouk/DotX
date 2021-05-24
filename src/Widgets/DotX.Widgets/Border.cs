@@ -10,13 +10,12 @@ namespace DotX.Widgets
 
         public static readonly CompositeObjectProperty BorderThicknessProperty =
             CompositeObjectProperty.RegisterProperty<int, Border>(nameof(BorderThickness),
-                                                                  PropertyOptions.Inherits,
-                                                                  1,
-                                                                  (b, val) => val < 0 ? 0 : val,
-                                                                  (b, oldVal, newVal) => {
-                                                                      b.InvalidateMeasure();
-                                                                      b.Invalidate();
-                                                                  });
+                                                                  PropertyOptions.Inherits | 
+                                                                  PropertyOptions.AffectsMeaure | 
+                                                                  PropertyOptions.AffectsArrange | 
+                                                                  PropertyOptions.AffectsRender,
+                                                                  defaultValue: 1,
+                                                                  coerceFunc: (b, val) => val < 0 ? 0 : val);
 
         public int BorderThickness
         {

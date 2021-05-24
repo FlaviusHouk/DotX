@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace DotX.PropertySystem
 {
@@ -10,10 +11,14 @@ namespace DotX.PropertySystem
 
         public TValue DefaultValue { get; }
 
-        public PropertyMetadata(TValue defaultValue,
+        public PropertyOptions Options { get; }
+
+        public PropertyMetadata(PropertyOptions options,
+                                TValue defaultValue,
                                 Func<TOwner, TValue, TValue> coerceFunc,
                                 Action<TOwner, TValue, TValue> changeValueFunc)
         {
+            Options = options;
             DefaultValue = defaultValue;
             _coerceFunc = coerceFunc;
             _changeValueFunc = changeValueFunc;
@@ -36,10 +41,10 @@ namespace DotX.PropertySystem
             throw new InvalidCastException();
         }
 
-        public void Changed<T>(CompositeObject obj, T oldVal, T newVal)
+        public virtual void Changed<T>(CompositeObject obj, T oldVal, T newVal)
         {
-            if(_changeValueFunc is null /*||
-               EqualityComparer<T>.Default.Equals(oldVal, newVal)*/)
+            if(_changeValueFunc is null ||
+               EqualityComparer<T>.Default.Equals(oldVal, newVal))
                 return;
 
             if (obj is TOwner owner)

@@ -27,7 +27,7 @@ namespace DotX.PropertySystem
                 objType = objType.BaseType;
 
                 var baseTypeProps = _registeredProperties.TryGetValue(objType, out var btProps) ? 
-                    btProps.Where(p => p.Options.HasFlag(PropertyOptions.Inherits)) : 
+                    btProps.Where(p => p.Metadata.Options.HasFlag(PropertyOptions.Inherits)) : 
                     Enumerable.Empty<CompositeObjectProperty>();
 
                 originalProps = originalProps.Concat(baseTypeProps);
@@ -68,7 +68,7 @@ namespace DotX.PropertySystem
             bool available = _registeredProperties.TryGetValue(tOwner, out var props) &&
                 props.Contains(property);
 
-            if(property.Options.HasFlag(PropertyOptions.Inherits))
+            if(property.Metadata.Options.HasFlag(PropertyOptions.Inherits))
             {
                 var t = tOwner.BaseType;
                 while(!available && t is not null)
