@@ -8,27 +8,6 @@ namespace DotX.PropertySystem
         T DefaultValue { get; }
     }
 
-    internal class ChangeHandler<TValue> : IChangeHandler
-    {
-        private readonly IPropertyMetadata _metadata;
-        private readonly CompositeObject _obj;
-        private readonly TValue _oldValue;
-
-        public ChangeHandler(CompositeObject obj,
-                             TValue oldValue,
-                             IPropertyMetadata metadata)
-        {
-            _obj = obj;
-            _oldValue = oldValue;
-            _metadata = metadata;
-        }
-
-        public void Changed(IPropertyValue value)
-        {
-            _metadata.Changed<TValue>(_obj, _oldValue, value.GetValue<TValue>());
-        }
-    }
-
     public class CompositeObjectProperty : IEquatable<CompositeObjectProperty>
     {
         public static IPropertyValue UnsetValue => ValueStorage.UnsetObject;

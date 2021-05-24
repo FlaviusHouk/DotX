@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using DotX.Interfaces;
+using DotX.PropertySystem;
 
 namespace DotX.Xaml.Generation
 {
-    internal class StyledPropertyValue : IPropertyValue
+    internal class StyledPropertyValue : PropertyValueBase
     {
         private enum ValueType
         {
@@ -41,7 +41,7 @@ namespace DotX.Xaml.Generation
             _collection = objects;
         }
 
-        public T GetValue<T>()
+        public override T GetValue<T>()
         {
             if(_valueType != ValueType.String)
                 throw new NotImplementedException();
@@ -50,7 +50,7 @@ namespace DotX.Xaml.Generation
             return (T)converter.Convert(_rawValue, typeof(T));
         }
 
-        public bool Is<T>()
+        public override bool Is<T>()
         {
             if(_valueType != ValueType.String)
                 throw new NotImplementedException();
@@ -58,7 +58,7 @@ namespace DotX.Xaml.Generation
             return Converters.Converters.TryGetConverterForType(typeof(T), out var _);
         }
 
-        public T SetValue<T>(T value)
+        public override T SetValue<T>(T value)
         {
             throw new System.NotImplementedException();
         }

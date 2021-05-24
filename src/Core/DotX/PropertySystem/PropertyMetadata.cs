@@ -1,5 +1,4 @@
 using System;
-using DotX.Interfaces;
 
 namespace DotX.PropertySystem
 {
@@ -37,28 +36,32 @@ namespace DotX.PropertySystem
             throw new InvalidCastException();
         }
 
-        public IChangeHandler InitiateChange(CompositeObject obj,
-                                             CompositeObjectProperty prop)
-        {
-            return new ChangeHandler<TValue>(obj,
-                                             obj.GetValue<TValue>(prop),
-                                             this);
-        }
-
         public void Changed<T>(CompositeObject obj, T oldVal, T newVal)
         {
             if(_changeValueFunc is null /*||
                EqualityComparer<T>.Default.Equals(oldVal, newVal)*/)
                 return;
 
-            if (obj is TOwner owner &&
-                oldVal is TValue oldValue &&
-                newVal is TValue newValue)
+            if (obj is TOwner owner)
             {
+                //It was fun but it should be simplified...
+                TValue oldValue = GetValue<TValue, T>(oldVal);
+                TValue newValue = GetValue<TValue, T>(newVal);
+
                 _changeValueFunc.Invoke(owner, oldValue, newValue);
                 return;
             }
 
+            throw new InvalidCastException();
+        }
+
+        private TResult GetValue<TResult, TValue>(TValue value)
+        {
+            if(value is TResult result)
+                return result;
+            else if(value is null)
+                return default;
+            
             throw new InvalidCastException();
         }
     }

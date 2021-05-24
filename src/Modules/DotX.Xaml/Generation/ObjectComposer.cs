@@ -151,7 +151,7 @@ namespace DotX.Xaml.Generation
                        target is CompositeObject compositeObject &&
                        compositeObject.TryGetProperty(extendedProp.PropertyName, out var compProp))
                     {
-                        compositeObject.SetValue(compProp, extendedValue);
+                        compositeObject.SetValue(compProp, propVal);
                     }
                     else
                     {

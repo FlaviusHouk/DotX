@@ -1,4 +1,6 @@
+using System;
 using System.Linq;
+using DotX.Interfaces;
 using DotX.PropertySystem;
 
 namespace DotX
@@ -18,7 +20,27 @@ namespace DotX
 
             prop = PropertyManager.Instance.GetVirtualProperty(GetType(), prop);
                 
-            return ValueStorage.Storage.GetValue<T>(this, prop);
+            var propVal = ValueStorage.Storage.GetValue(this, prop);
+
+            if(propVal == CompositeObjectProperty.UnsetValue)
+            {
+                if(prop.Metadata is IPropertyMetadata<T> typedMetadata)
+                    return typedMetadata.DefaultValue;
+                else
+                    return default;
+            }
+               
+            return propVal.GetValue<T>();
+        }
+
+        public void SetValue(CompositeObjectProperty prop, IPropertyValue value)
+        {
+            if(!CanSet(prop))
+                throw new System.Exception();
+
+            prop = PropertyManager.Instance.GetVirtualProperty(GetType(), prop);
+
+            ValueStorage.Storage.SetValue(this, prop, value);
         }
 
         public void SetValue<T>(CompositeObjectProperty prop, T value)
@@ -28,7 +50,28 @@ namespace DotX
 
             prop = PropertyManager.Instance.GetVirtualProperty(GetType(), prop);
 
-            ValueStorage.Storage.SetValue<T>(this, prop, value);
+            if(!prop.PropertyType.IsAssignableFrom(value.GetType()))
+                throw new InvalidCastException();
+
+            value = prop.Metadata.Coerce(this, value);
+            T oldValue = default;
+            
+            var oldPropValue = ValueStorage.Storage.GetValue(this, prop);
+            if(oldPropValue == CompositeObjectProperty.UnsetValue)
+            {
+                oldPropValue = new PropertyValue<T>(value);
+                ValueStorage.Storage.SetValue(this, prop, oldPropValue);
+
+                if(prop.Metadata is IPropertyMetadata<T> typedMetadata)
+                    oldValue = typedMetadata.DefaultValue;
+            }
+            else
+            {
+                oldPropValue.SetValue<T>(value);
+                oldPropValue.OnChanged(this, prop);
+            }
+
+            prop.Metadata.Changed(this, oldValue, value);
         }
 
         public bool TryGetProperty(string propName, out CompositeObjectProperty prop)

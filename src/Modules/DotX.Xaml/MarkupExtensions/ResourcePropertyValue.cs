@@ -6,7 +6,7 @@ using DotX.PropertySystem;
 
 namespace DotX.Xaml.MarkupExtensions
 {
-    internal class ResourcePropertyValue : IPropertyValue
+    internal class ResourcePropertyValue : PropertyValueBase
     {
         private readonly IResourceOwner _owner; 
         private IPropertyValue _cachedValue;
@@ -18,7 +18,7 @@ namespace DotX.Xaml.MarkupExtensions
             _owner = owner;
         }
 
-        public T GetValue<T>()
+        public override T GetValue<T>()
         {
             if(_cachedValue is not null)
                 return _cachedValue.GetValue<T>();
@@ -28,7 +28,7 @@ namespace DotX.Xaml.MarkupExtensions
             return _cachedValue.GetValue<T>();
         }
 
-        public bool Is<T>()
+        public override bool Is<T>()
         {
             if(_cachedValue is not null)
                 return _cachedValue.Is<T>();
@@ -38,7 +38,7 @@ namespace DotX.Xaml.MarkupExtensions
             return _cachedValue.Is<T>();
         }
 
-        public T SetValue<T>(T value)
+        public override T SetValue<T>(T value)
         {
             throw new NotSupportedException();
         }
