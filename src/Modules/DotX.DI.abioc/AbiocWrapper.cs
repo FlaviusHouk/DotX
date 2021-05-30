@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Abioc;
 
 namespace DotX.DI.Abioc
@@ -14,7 +15,9 @@ namespace DotX.DI.Abioc
 
         public object GetService(Type serviceType)
         {
-            return _container.GetService(serviceType);
+            //Because GetService(serviceType)
+            //throw exception if service was not found.
+            return _container.GetServices(serviceType).FirstOrDefault();
         }
     }
 }

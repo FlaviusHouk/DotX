@@ -39,6 +39,10 @@
                 <TextBlock Text="Third." Foreground="0;0;0" FontSize="15"
                            FontFamily="Source Code Pro Regular"
                            Padding="10;0;0;0" Background="1;1;1"/>
+                
+                <TextBox Foreground="0;0;0" FontSize="12" Margin="5" 
+                         FontFamily = "Liberation Serif"
+                         Background="1;1;1"/>
             </StackPanel>
         </Border>
     </StackPanel>

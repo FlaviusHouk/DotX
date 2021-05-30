@@ -13,5 +13,9 @@ namespace DotX.Interfaces
         Rectangle? DirtyArea { get; }
 
         void Show();
+
+        void MarkDirtyArea(Rectangle area);
+
+        void CleanDirtyArea();
     }
 }

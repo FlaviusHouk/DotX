@@ -30,6 +30,9 @@ namespace DotX.PropertySystem
             if(Options.HasFlag(PropertyOptions.AffectsRender))
                 v.Invalidate();
 
+            if(Options.HasFlag(PropertyOptions.AffectsParentRender))
+                v.VisualParent.Invalidate();
+
             base.Changed(obj, oldVal, newVal);
         }
     }

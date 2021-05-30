@@ -25,6 +25,15 @@ namespace DotX
             }
         }
 
+        public static ITimeline Timeline
+        {
+            get
+            {
+                return (ITimeline)Provider.GetService(typeof(ITimeline)) ??
+                    DotX.Timeline.Instance;
+            }
+        }
+
         public static void Initialize(IServiceProvider services)
         {
             if(Provider is not null)

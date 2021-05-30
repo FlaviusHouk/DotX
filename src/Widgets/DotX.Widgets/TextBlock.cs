@@ -3,84 +3,12 @@ using Cairo;
 using System.Linq;
 using System;
 using DotX.PropertySystem;
+using DotX.Widgets.Text;
 
 namespace DotX.Widgets
 {
-    public class TextBlock : Widget
+    public class TextBlock : TextBase
     {
-        private static Pango.Context _defaultContext;
-
-        static TextBlock()
-        {
-            using var surf = new ImageSurface(Format.RGB24, 1, 1);
-            using var ctx = new Cairo.Context(surf);
-            _defaultContext = Pango.CairoHelper.CreateContext(ctx); 
-        }
-
-        public static readonly CompositeObjectProperty TextProperty =
-            CompositeObjectProperty.RegisterProperty<string,TextBlock>(nameof(Text),
-                                                                       PropertyOptions.Inherits);
-
-        public static readonly CompositeObjectProperty FontSizeProperty =
-            CompositeObjectProperty.RegisterProperty<int, TextBlock>(nameof(FontSize),
-                                                                     PropertyOptions.Inherits,
-                                                                     changeValueFunc: OnFontSizePropertyChanged);
-
-        private static void OnFontSizePropertyChanged(TextBlock textBlock, int oldValue, int newValue)
-        {
-            textBlock.RebuildFontDescription();
-        }
-
-        public static readonly CompositeObjectProperty FontFamilyProperty =
-            CompositeObjectProperty.RegisterProperty<string, TextBlock>(nameof(FontFamily),
-                                                                        PropertyOptions.Inherits,
-                                                                        changeValueFunc: OnFontFamilyPropertyChanged);
-
-        private static void OnFontFamilyPropertyChanged(TextBlock textBlock, string oldValue, string newValue)
-        {
-            textBlock.RebuildFontDescription();
-        }
-
-        public static readonly CompositeObjectProperty FontWeightProperty =
-            CompositeObjectProperty.RegisterProperty<FontWeight, TextBlock>(nameof(FontWeight),
-                                                                            PropertyOptions.Inherits);
-
-        public static readonly CompositeObjectProperty TextAlignmentProperty =
-            CompositeObjectProperty.RegisterProperty<Alignment, TextBlock>(nameof(TextAlignment),
-                                                                           PropertyOptions.Inherits);
-
-        private FontDescription _font;
-
-        public string Text
-        {
-            get => GetValue<string>(TextProperty);
-            set => SetValue(TextProperty, value);
-        }
-
-        public int FontSize
-        {
-            get => GetValue<int>(FontSizeProperty);
-            set => SetValue(FontSizeProperty, value);
-        }
-
-        public string FontFamily
-        {
-            get => GetValue<string>(FontFamilyProperty);
-            set => SetValue(FontFamilyProperty, value);
-        }
-
-        public FontWeight FontWeight
-        {
-            get => GetValue<FontWeight>(FontWeightProperty);
-            set => SetValue(FontWeightProperty, value);
-        }
-
-        public Alignment TextAlignment
-        {
-            get => GetValue<Alignment>(TextAlignmentProperty);
-            set => SetValue(TextAlignmentProperty, value);
-        }
-
         public override void Render(Cairo.Context context)
         {
             base.Render(context);
@@ -101,7 +29,7 @@ namespace DotX.Widgets
         protected override Cairo.Rectangle MeasureCore(Cairo.Rectangle size)
         {
             using var layout = new Layout(_defaultContext); 
-
+            
             if(!_defaultContext.Families.Any(font => font.Name == FontFamily))
             {
                 _defaultContext.LoadFont(_font);
@@ -127,18 +55,6 @@ namespace DotX.Widgets
         {
             if(s.Setters.Select(s => s.Property).Any(p => p == nameof(FontSize) || p == nameof(FontFamily)))
                 RebuildFontDescription();
-        }
-
-        private void RebuildFontDescription()
-        {
-            if(_font is not null)
-                _font.Dispose();
-
-            _font = new FontDescription()
-            {
-                Family = FontFamily,
-                Size = (int)(FontSize * Pango.Scale.PangoScale),
-            };
         }
     }
 }

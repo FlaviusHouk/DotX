@@ -32,7 +32,7 @@ namespace DotX.Rendering
         private readonly Dictionary<IRootVisual, SurfaceWrapper> _windowBuffers =
             new();
 
-        private readonly ConcurrentBag<RenderRequest> _renderQueue =
+        private readonly ConcurrentQueue<RenderRequest> _renderQueue =
             new ();
 
         private readonly ConcurrentQueue<RenderRequest> _pendingRequests =
@@ -43,6 +43,7 @@ namespace DotX.Rendering
             _mainDispatcher = mainThread;
 
             _renderThread = new Thread(RenderLoop);
+            _renderThread.Name = "Render thread";
             
             _renderThread.Start();
         }
@@ -67,7 +68,7 @@ namespace DotX.Rendering
             var newRequest = new RenderRequest(visualToInvalidate, 
                                                root, 
                                                area.Value,
-                                               root.DirtyArea is null);
+                                               root.DirtyArea is not null);
 
             if(newRequest.Redraw)
             {
@@ -81,7 +82,7 @@ namespace DotX.Rendering
                 }
             }
 
-            _renderQueue.Add(newRequest);
+            _renderQueue.Enqueue(newRequest);
 
             _threadLocker.Set();
         }
@@ -119,10 +120,8 @@ namespace DotX.Rendering
             {
                 Services.Logger.LogRender("Creating bigger surface for root visual...");
 
-                _windowBuffers.Remove(root);
-
-                int newWidth = bufferSurface.Width * 2;
-                int newHeight = bufferSurface.Height * 2;
+                int newWidth = (int)Math.Max(bufferSurface.Width * 2, renderSize.Width);
+                int newHeight = (int)Math.Max(bufferSurface.Height * 2, renderSize.Height);
 
                 Services.Logger.LogRender("Size of the created surface is {0}x{1}.", 
                                           newWidth,
@@ -137,7 +136,7 @@ namespace DotX.Rendering
                                                      newHeight);
                 }
 
-                _windowBuffers.Add(root, new SurfaceWrapper(bufferSurface, locker));
+                _windowBuffers[root] = new SurfaceWrapper(bufferSurface, locker);
             }
 
             return (bufferSurface, locker);
@@ -147,7 +146,7 @@ namespace DotX.Rendering
         {
             while(true)
             {
-                if(!_renderQueue.TryTake(out var renderRequest))
+                if(!_renderQueue.TryDequeue(out var renderRequest))
                 {
                     Services.Logger.LogRender("No elements to render. Blocking...");
                     _threadLocker.Reset();
@@ -162,6 +161,7 @@ namespace DotX.Rendering
 
                 if (renderRequest.Redraw)
                 {
+                    using var dispatcherLocker = _mainDispatcher.BlockProcessing();
                     lock (bufferSurface.Locker)
                     {
                         Services.Logger.LogRender("Buffer locked. Starting draw cycle...");
@@ -173,6 +173,8 @@ namespace DotX.Rendering
 
                             renderRequest.VisualToInvalidate.Render(context);
                         }
+
+                        renderRequest.Root.CleanDirtyArea();
                     }
                 }
                 else

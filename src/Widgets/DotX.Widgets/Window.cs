@@ -72,26 +72,7 @@ namespace DotX.Widgets
         private void WindowDirty(RenderEventArgs args)
         {
             var dirtyRect = new Rectangle(args.X, args.Y, args.Width, args.Height);
-            if(_dirtyArea is null)
-            {
-                _dirtyArea = dirtyRect;
-            }
-            else
-            {
-                double left = Math.Min(_dirtyArea.Value.X, dirtyRect.X);
-                double top =  Math.Min(_dirtyArea.Value.Y, dirtyRect.Y);
-
-                double right = Math.Max(_dirtyArea.Value.X + _dirtyArea.Value.Width,
-                                        dirtyRect.X + dirtyRect.Width);
-
-                double bottom = Math.Max(_dirtyArea.Value.Y + _dirtyArea.Value.Height,
-                                        dirtyRect.Y + dirtyRect.Height);
-
-                _dirtyArea = new Rectangle(left,
-                                           top,
-                                           right - left,
-                                           bottom - top);
-            }
+            MarkDirtyArea(dirtyRect);
 
             Invalidate(dirtyRect);
         }
@@ -113,6 +94,36 @@ namespace DotX.Widgets
         public void Close()
         {
             WindowImpl.Close();
+        }
+
+        public void MarkDirtyArea(Rectangle area)
+        {
+            if(_dirtyArea is null)
+            {
+                _dirtyArea = area;
+            }
+            else
+            {
+                double left = Math.Min(_dirtyArea.Value.X, area.X);
+                double top =  Math.Min(_dirtyArea.Value.Y, area.Y);
+
+                double right = Math.Max(_dirtyArea.Value.X + _dirtyArea.Value.Width,
+                                        area.X + area.Width);
+
+                double bottom = Math.Max(_dirtyArea.Value.Y + _dirtyArea.Value.Height,
+                                        area.Y + area.Height);
+
+                _dirtyArea = new Rectangle(left,
+                                           top,
+                                           right - left,
+                                           bottom - top);
+            }
+        }
+
+        public void CleanDirtyArea()
+        {
+            //Some class like Area with complex form should be here.
+            _dirtyArea = default;
         }
     }
 }

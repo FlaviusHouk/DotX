@@ -49,7 +49,9 @@ namespace DotX.Widgets
 
         public static readonly CompositeObjectProperty IsVisibleProperty =
             CompositeObjectProperty.RegisterProperty<bool, Widget>(nameof(IsVisible),
-                                                                   PropertyOptions.Inherits,
+                                                                   PropertyOptions.Inherits |
+                                                                   PropertyOptions.AffectsRender |
+                                                                   PropertyOptions.AffectsParentRender,
                                                                    true);
 
         public static readonly CompositeObjectProperty MarginProperty =

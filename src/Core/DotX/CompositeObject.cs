@@ -67,6 +67,7 @@ namespace DotX
             }
             else
             {
+                oldValue = oldPropValue.GetValue<T>();
                 oldPropValue.SetValue<T>(value);
                 oldPropValue.OnChanged(this, prop);
             }

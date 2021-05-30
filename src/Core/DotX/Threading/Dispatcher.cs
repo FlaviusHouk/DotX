@@ -5,6 +5,22 @@ namespace DotX.Threading
 {
     public class Dispatcher
     {
+        private class ProcessingLocker : IDisposable
+        {
+            private readonly Dispatcher _owner;
+            public ProcessingLocker(Dispatcher d)
+            {
+                _owner = d;
+            }
+
+            public void Dispose()
+            {
+                _owner._locker = default;
+
+                if(_owner._isWaiting)
+                    _owner._awakeFunction?.Invoke();
+            }
+        }
         private static Lazy<Dispatcher> _dispatcherCreator =
             new Lazy<Dispatcher>(() => new Dispatcher(Thread.CurrentThread));
             
@@ -18,6 +34,7 @@ namespace DotX.Threading
         private bool _isWaiting;
         private Action _waitFunc;
         private Action _awakeFunction;
+        private ProcessingLocker _locker;
 
         private readonly PriorityQueue<DispatcherJob, OperationPriority> _queue =
             new PriorityQueue<DispatcherJob, OperationPriority>();
@@ -25,6 +42,7 @@ namespace DotX.Threading
         private Dispatcher(Thread therad)
         {
             _therad = therad;
+            _therad.Name = "Main thread";
             _awaiter = new ManualResetEventSlim();
         }
 
@@ -69,6 +87,15 @@ namespace DotX.Threading
                 _awaiter.Set();
         }
 
+        public IDisposable BlockProcessing()
+        {
+            if(_locker is not null)
+                throw new Exception();
+
+            _locker = new ProcessingLocker(this);
+            return _locker;
+        }
+
         public void RunLoop()
         {
             var prevContext = SynchronizationContext.Current;
@@ -104,7 +131,10 @@ namespace DotX.Threading
             DispatcherJob current = null;
             do
             {
-                if(_queue.TryDequeue(out current))
+                //TODO:add await for current job
+                if(_locker is not null)
+                    Wait();
+                else if(_queue.TryDequeue(out current))
                     current.Invoke();
                 else if(_isShuttingDown)
                     return;
