@@ -9,7 +9,7 @@ using System;
 
 namespace DotX.Rendering
 {
-    internal class RenderManager
+    internal class RenderManager : IRenderManager
     {
         //Add pool?
         private record SurfaceWrapper(ImageSurface Surface,

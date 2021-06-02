@@ -1,5 +1,7 @@
 using System;
 using DotX.Interfaces;
+using DotX.Rendering;
+using DotX.Threading;
 
 namespace DotX
 {
@@ -13,6 +15,9 @@ namespace DotX
 
         private static Lazy<ILogger> _logger = 
             new(() => new DummyLogger());
+
+        private static Lazy<IRenderManager> _renderManagerCreator =
+            new(() => new RenderManager(Dispatcher.CurrentDispatcher));
 
         internal static IServiceProvider Provider { get; private set; }
 
@@ -31,6 +36,15 @@ namespace DotX
             {
                 return (ITimeline)Provider.GetService(typeof(ITimeline)) ??
                     DotX.Timeline.Instance;
+            }
+        }
+
+        public static IRenderManager RenderManager
+        {
+            get
+            {
+                return (IRenderManager)Provider.GetService(typeof(IRenderManager)) ??
+                    _renderManagerCreator.Value;
             }
         }
 

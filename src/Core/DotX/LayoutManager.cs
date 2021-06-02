@@ -13,13 +13,11 @@ namespace DotX
 
         public static LayoutManager Instance => _value.Value;
 
-        private readonly RenderManager _renderManager; 
+        private readonly IRenderManager _renderManager; 
 
         private LayoutManager()
         {
-            var d = Dispatcher.CurrentDispatcher;
-            
-            _renderManager = new RenderManager(d);
+            _renderManager = Services.RenderManager;
         }
 
         public void InvalidateMeasure(Visual visual)
