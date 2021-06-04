@@ -7,5 +7,8 @@ namespace DotX.Interfaces
         void Invalidate(IRootVisual root,
                         Visual visualToInvalidate,
                         Rectangle? area);
+
+        void Expose(IRootVisual root,
+                    Rectangle area);
     }
 }

@@ -1,8 +1,7 @@
 using System;
 using Cairo;
+using DotX.Extensions;
 using DotX.Interfaces;
-using DotX.Rendering;
-using DotX.Threading;
 
 namespace DotX
 {
@@ -47,16 +46,18 @@ namespace DotX
         public void InitiateRender(Visual visual, Rectangle? area)
         {
             var originalVisual = visual;
+            var window = visual as IRootVisual;
 
-            while(visual is not IRootVisual && visual is not null)
-                visual = visual.VisualParent;
+            if (window is null)
+            {
+                visual.TraverseTop<IRootVisual>(current =>
+                {
+                    window = current;
+                    return true;
+                });
+            }
 
-            if(visual is null)
-                return;
-
-            var window = (IRootVisual)visual;
-
-            if(!window.IsVisible)
+            if(window is null || !window.IsVisible)
                 return;
 
             _renderManager.Invalidate(window, originalVisual, area);

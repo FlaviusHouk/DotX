@@ -3,6 +3,7 @@ using Cairo;
 using DotX.Interfaces;
 using DotX.Data;
 using DotX.PropertySystem;
+using DotX.Extensions;
 
 namespace DotX.Widgets
 {
@@ -17,6 +18,8 @@ namespace DotX.Widgets
                                                                      default,
                                                                      changeValueFunc: (wind, oldVal, newVal) => wind.WindowImpl.UpdateBackground(newVal));
         }
+
+        private readonly IRenderManager _renderManager;
 
         //It should be complex figure but for now let it be as just rectangle.
         private Rectangle? _dirtyArea;
@@ -36,6 +39,7 @@ namespace DotX.Widgets
             WindowImpl.Closed+= OnWindowClosed;
 
             Application.AddWindow(this);
+            _renderManager = Services.RenderManager;
         }
 
         private void OnWindowClosed()
@@ -52,7 +56,6 @@ namespace DotX.Widgets
             _dirtyArea = default;
             Measure(new Rectangle(0,0, width, height));
 
-            InvalidateArrange(true);
             Invalidate();
         }
 
@@ -74,7 +77,7 @@ namespace DotX.Widgets
             var dirtyRect = new Rectangle(args.X, args.Y, args.Width, args.Height);
             MarkDirtyArea(dirtyRect);
 
-            Invalidate(dirtyRect);
+            _renderManager.Expose(this, _dirtyArea ?? dirtyRect);            
         }
 
         protected override Rectangle MeasureCore(Rectangle size)
@@ -99,25 +102,9 @@ namespace DotX.Widgets
         public void MarkDirtyArea(Rectangle area)
         {
             if(_dirtyArea is null)
-            {
                 _dirtyArea = area;
-            }
             else
-            {
-                double left = Math.Min(_dirtyArea.Value.X, area.X);
-                double top =  Math.Min(_dirtyArea.Value.Y, area.Y);
-
-                double right = Math.Max(_dirtyArea.Value.X + _dirtyArea.Value.Width,
-                                        area.X + area.Width);
-
-                double bottom = Math.Max(_dirtyArea.Value.Y + _dirtyArea.Value.Height,
-                                        area.Y + area.Height);
-
-                _dirtyArea = new Rectangle(left,
-                                           top,
-                                           right - left,
-                                           bottom - top);
-            }
+                _dirtyArea = _dirtyArea.Value.Union(area);
         }
 
         public void CleanDirtyArea()

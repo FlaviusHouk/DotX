@@ -21,16 +21,17 @@ namespace DotX
         //It will be refactored after templates will be introduced.
         public Visual VisualParent { get; set; }
 
-        public bool IsMeasureDirty { get; internal set; } = true;
-        public bool IsArrangeDirty { get; internal set; } = true;
+        public bool IsMeasureDirty { get; internal set; }
+        public bool IsArrangeDirty { get; internal set; }
 
         public bool IsDirty { get; internal set; }
 
         public void InvalidateMeasure()
         {
-            if(!IsMeasureDirty)
+            if(IsMeasureDirty)
                 return;
 
+            IsMeasureDirty = true;
             LayoutManager.Instance.InvalidateMeasure(this);
         }
 
@@ -40,12 +41,12 @@ namespace DotX
             IsMeasureDirty = false;
         }
 
-        //Approach to set IsArrangeDirty should be developed
-        public void InvalidateArrange(bool force = false)
+        public void InvalidateArrange()
         {
-            if(!IsArrangeDirty && !force)
+            if(IsArrangeDirty)
                 return;
 
+            IsArrangeDirty = true;
             LayoutManager.Instance.InvalidateArrange(this);
         }
 

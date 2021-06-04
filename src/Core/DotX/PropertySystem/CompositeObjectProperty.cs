@@ -20,23 +20,11 @@ namespace DotX.PropertySystem
                                                                              Action<TOwner, TVal, TVal> changeValueFunc = default)
             where TOwner : CompositeObject
         {
-            IPropertyMetadata metadata;
-            if((options & ~GeneralOptions) != 0)
-            {
-                metadata = 
-                    new VisualPropertyMetadata<TOwner, TVal>(options,
-                                                             defaultValue,
-                                                             coerceFunc,
-                                                             changeValueFunc);
-            }
-            else
-            {
-                metadata = 
-                    new PropertyMetadata<TOwner, TVal>(options,
-                                                       defaultValue,
-                                                       coerceFunc,
-                                                       changeValueFunc);
-            }
+            IPropertyMetadata metadata = 
+                CreateMetadata<TOwner, TVal>(options,
+                                             defaultValue,
+                                             coerceFunc,
+                                             changeValueFunc);
 
             var prop = 
                 new CompositeObjectProperty(propName,
@@ -57,15 +45,45 @@ namespace DotX.PropertySystem
             if(prop.Metadata is not IPropertyMetadata<TVal>)
                 throw new InvalidOperationException("Cannot override property type.");
 
+            IPropertyMetadata newMetadata = 
+                CreateMetadata<TOwner, TVal>(prop.Metadata.Options,
+                                             value,
+                                             coerceFunc,
+                                             changeValueFunc);
+
             var overridenProp = 
                 new CompositeObjectProperty(prop.PropName,
                                             prop.PropertyType,
-                                            new PropertyMetadata<TOwner, TVal>(prop.Metadata.Options,
-                                                                               value,
-                                                                               coerceFunc,
-                                                                               changeValueFunc));
+                                            newMetadata);
 
             PropertyManager.Instance.RegisterProperty<TOwner>(overridenProp);
+        }
+
+        private static IPropertyMetadata CreateMetadata<TOwner, TVal>(PropertyOptions options,
+                                                                      TVal value,
+                                                                      Func<TOwner, TVal, TVal> coerceFunc = default,
+                                                                      Action<TOwner, TVal, TVal> changeValueFunc = default)
+            where TOwner : CompositeObject
+        {
+            IPropertyMetadata newMetadata;
+            if((options & ~GeneralOptions) != 0)
+            {
+                newMetadata = 
+                    new VisualPropertyMetadata<TOwner, TVal>(options,
+                                                             value,
+                                                             coerceFunc,
+                                                             changeValueFunc);
+            }
+            else
+            {
+                newMetadata = 
+                    new PropertyMetadata<TOwner, TVal>(options,
+                                                       value,
+                                                       coerceFunc,
+                                                       changeValueFunc);
+            }
+
+            return newMetadata;
         }
 
         public string PropName { get; }

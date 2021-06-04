@@ -54,7 +54,7 @@ namespace DotX.Rendering
         {
             area ??= visualToInvalidate.RenderSize;
 
-            Services.Logger.LogRender("Render request received. Area to update is {0}.", area);
+            Services.Logger.LogRender("Received request to redraw area {0}.", area);
 
             ImageSurface windowBuffer;
             object locker;
@@ -67,22 +67,45 @@ namespace DotX.Rendering
 
             var newRequest = new RenderRequest(visualToInvalidate, 
                                                root, 
-                                               area.Value,
-                                               root.DirtyArea is not null);
+                                               area.Value);
 
-            if(newRequest.Redraw)
+            while (_pendingRequests.TryPeek(out var oldRequest) &&
+                   oldRequest is not null &&
+                   !oldRequest.Redraw &&
+                   newRequest.AreaToUpdate.Contains(oldRequest.AreaToUpdate))
             {
-                while(_pendingRequests.TryPeek(out var request) &&
-                      request is not null &&
-                      !request.Redraw)
-                {
-                    request.Cancel();
+                oldRequest.Cancel();
 
-                    _pendingRequests.TryDequeue(out var _);
-                }
+                _pendingRequests.TryDequeue(out var _);
             }
 
-            _renderQueue.Enqueue(newRequest);
+            EnqueueRenderRequest(newRequest);
+        }
+
+        public void Expose(IRootVisual root,
+                           Rectangle area)
+        {
+            if(!_windowBuffers.TryGetValue(root, out var surface))
+                return;
+            
+            var surfaceRect = new Rectangle(0, 0, 
+                                            surface.Surface.Width, 
+                                            surface.Surface.Height);
+
+            if(!surfaceRect.Contains(area))
+                Services.Logger.LogRender("Exposing area is bigger than surface");
+
+            var newRequest = new RenderRequest(null, 
+                                               root, 
+                                               area,
+                                               false);
+
+            EnqueueRenderRequest(newRequest);
+        }
+
+        private void EnqueueRenderRequest(RenderRequest request)
+        {
+            _renderQueue.Enqueue(request);
 
             _threadLocker.Set();
         }
@@ -173,8 +196,6 @@ namespace DotX.Rendering
 
                             renderRequest.VisualToInvalidate.Render(context);
                         }
-
-                        renderRequest.Root.CleanDirtyArea();
                     }
                 }
                 else

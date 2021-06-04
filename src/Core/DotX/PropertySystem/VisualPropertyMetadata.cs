@@ -31,7 +31,7 @@ namespace DotX.PropertySystem
                 v.Invalidate();
 
             if(Options.HasFlag(PropertyOptions.AffectsParentRender))
-                v.VisualParent.Invalidate();
+                v.VisualParent?.Invalidate();
 
             base.Changed(obj, oldVal, newVal);
         }
