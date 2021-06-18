@@ -20,7 +20,8 @@ namespace DotX.Platform.Linux.X
         private readonly IList<LinuxX11WindowImpl> _windows =
             new List<LinuxX11WindowImpl>();
 
-        private IInputManager _inputManager;
+        private readonly IInputManager _inputManager;
+        private readonly ILogger _logger;
 
         public IntPtr Display { get; } 
 
@@ -33,13 +34,14 @@ namespace DotX.Platform.Linux.X
         
         public LinuxX11Platform()
         {
+            _logger = Services.Logger;
             XlibWrapper.setlocale(6, string.Empty);
 
             if(!XlibWrapper.XSupportsLocale())
                 throw new Exception();
 
             string oldMod = XlibWrapper.XSetLocaleModifiers(string.Empty);
-            Services.Logger.LogWindowingSystemEvent($"Locale modifiers are {oldMod}.");
+            _logger.LogWindowingSystemEvent($"Locale modifiers are {oldMod}.");
             if(oldMod is null)
                 throw new Exception();
 
@@ -63,11 +65,11 @@ namespace DotX.Platform.Linux.X
 
         private void WakeUp()
         {
-            Services.Logger.LogWindowingSystemEvent("Received wake up call.");
+            _logger.LogWindowingSystemEvent("Received wake up call.");
 
             if(!_windows.Any())
             {
-                Services.Logger.LogWindowingSystemEvent("No windows to wake. Request skipped.");
+                _logger.LogWindowingSystemEvent("No windows to wake. Request skipped.");
                 return;
             }
 
@@ -88,7 +90,7 @@ namespace DotX.Platform.Linux.X
                 Marshal.StructureToPtr(msg, ev, false);
 
                 X11.Status status = Xlib.XSendEvent(connection, _windows[0].XWindow, true, 0, ev);
-                Services.Logger.LogWindowingSystemEvent("Message to XOrg sent. Status - {0}", status);
+                _logger.LogWindowingSystemEvent("Message to XOrg sent. Status - {0}", status);
             }
             finally
             {
@@ -125,7 +127,7 @@ namespace DotX.Platform.Linux.X
 
             XlibWrapper.XSetICFocus(InputContext);
 
-            Services.Logger.LogWindowingSystemEvent("Window {0} created.", wind.XWindow);
+            _logger.LogWindowingSystemEvent("Window {0} created.", wind.XWindow);
 
             _windows.Add(wind);
             XSetWMProtocols(wind);
@@ -155,7 +157,7 @@ namespace DotX.Platform.Linux.X
 
         private void WaitForEvent(Dispatcher d, IntPtr ev)
         {
-            Services.Logger.LogWindowingSystemEvent("Waiting for X11 events...");
+            _logger.LogWindowingSystemEvent("Waiting for X11 events...");
             Xlib.XNextEvent(Display, ev);
 
             var xevent = Marshal.PtrToStructure<X11.XAnyEvent>(ev);
@@ -165,7 +167,7 @@ namespace DotX.Platform.Linux.X
 
         private void HandleEvent(X11.XAnyEvent xevent, IntPtr ev, Dispatcher d)
         {
-            Services.Logger.LogWindowingSystemEvent("Processing event {0}...", xevent.type);
+            _logger.LogWindowingSystemEvent("Processing event {0}...", xevent.type);
 
             switch(xevent.type)
             {
@@ -229,7 +231,7 @@ namespace DotX.Platform.Linux.X
                 var window = _windows.First(w => w.XWindow == mouseButtonEvent.window);
                 var windowControl = Application.CurrentApp.Windows.First(w => w.WindowImpl == window);
 
-                Services.Logger.LogWindowingSystemEvent("Processing pointer event. Button {0} {1}.", 
+                _logger.LogWindowingSystemEvent("Processing pointer event. Button {0} {1}.", 
                                                          mouseButtonEvent.button,
                                                          isPressed ? "pressed" : "released");
 
@@ -251,8 +253,8 @@ namespace DotX.Platform.Linux.X
                 var window = _windows.First(w => w.XWindow == keyEvent.window);
                 var windowControl = Application.CurrentApp.Windows.First(w => w.WindowImpl == window);
 
-                Services.Logger.LogWindowingSystemEvent("Processing key event. KeyCode is {0}.", 
-                                                         keyEvent.keycode);
+                _logger.LogWindowingSystemEvent("Processing key event. KeyCode is {0}.", 
+                                                 keyEvent.keycode);
 
                 _inputManager.DispatchKeyEvent(windowControl, 
                                                new LinuxKeyEventArgs(isPressed,
@@ -267,9 +269,9 @@ namespace DotX.Platform.Linux.X
                 var window = _windows.First(w => w.XWindow == motionEvent.window);
                 var windowControl = Application.CurrentApp.Windows.First(w => w.WindowImpl == window);
 
-                Services.Logger.LogWindowingSystemEvent("Processing motion event. Mouse position is {0}x{1}.",
-                                                        motionEvent.x,
-                                                        motionEvent.y);
+                _logger.LogWindowingSystemEvent("Processing motion event. Mouse position is {0}x{1}.",
+                                                motionEvent.x,
+                                                motionEvent.y);
 
                 _inputManager.DispatchPointerMove((Visual)windowControl, 
                                                   new PointerMoveEventArgs(motionEvent.x, 
@@ -288,9 +290,9 @@ namespace DotX.Platform.Linux.X
                     var window = _windows.First(w => w.XWindow == crossingEvent.window);
                     var windowControl = Application.CurrentApp.Windows.First(w => w.WindowImpl == window);
 
-                    Services.Logger.LogWindowingSystemEvent("Processing crossing event. Mouse position - {0}x{1}.",
-                                                            crossingEvent.x,
-                                                            crossingEvent.y);
+                    _logger.LogWindowingSystemEvent("Processing crossing event. Mouse position - {0}x{1}.",
+                                                    crossingEvent.x,
+                                                    crossingEvent.y);
 
                     _inputManager.DispatchPointerMove((Visual)windowControl, 
                                                       new PointerMoveEventArgs(crossingEvent.x, 
@@ -304,7 +306,7 @@ namespace DotX.Platform.Linux.X
         {
             if(clientMessage.message_type == WM_PROTOCOL)
             {
-                Services.Logger.LogWindowingSystemEvent("Having client message WM_PROTOCOL.");
+                _logger.LogWindowingSystemEvent("Having client message WM_PROTOCOL.");
                 //It might not work with other Window Managers then
                 //Openbox. Maybe it WM_DELETE_PROTOCOL should be also
                 //checked in clientMessage.data.
@@ -314,15 +316,15 @@ namespace DotX.Platform.Linux.X
 
         private void HandleDestroyEvent(X11.XDestroyWindowEvent destroyEvent, Dispatcher d)
         {
-            Services.Logger.LogWindowingSystemEvent("Processing destroy event...");
+            _logger.LogWindowingSystemEvent("Processing destroy event...");
             d.Invoke(() => DestroyWindow(destroyEvent.window));
         }
 
         private void HandleConfigureEvent(X11.XConfigureRequestEvent configureEvent, Dispatcher d)
         {
-            Services.Logger.LogWindowingSystemEvent("Processing Configure event. Window size is {0}x{1}.",
-                                                    configureEvent.width,
-                                                    configureEvent.height);
+            _logger.LogWindowingSystemEvent("Processing Configure event. Window size is {0}x{1}.",
+                                            configureEvent.width,
+                                            configureEvent.height);
 
             d.BeginInvoke(() => {
                 var window = _windows.First(w => w.XWindow == configureEvent.window);
@@ -332,9 +334,9 @@ namespace DotX.Platform.Linux.X
 
         private void HandleResizeEvent(X11.XResizeRequestEvent resizeEvent, Dispatcher d)
         {
-            Services.Logger.LogWindowingSystemEvent("Processing resizing event. New size is {0}x{1}.",
-                                                    resizeEvent.width,
-                                                    resizeEvent.height);
+            _logger.LogWindowingSystemEvent("Processing resizing event. New size is {0}x{1}.",
+                                            resizeEvent.width,
+                                            resizeEvent.height);
 
             d.BeginInvoke(() => {
                 var window = _windows.First(w => w.XWindow == resizeEvent.window);
@@ -344,11 +346,11 @@ namespace DotX.Platform.Linux.X
 
         private void HandleExposeEvent(X11.XExposeEvent exposeEvent, Dispatcher d)
         {
-            Services.Logger.LogWindowingSystemEvent("Processing expose event. Exposed area is [{0}, {1}] - {2}x{3}.",
-                                                    exposeEvent.x,
-                                                    exposeEvent.y,
-                                                    exposeEvent.width,
-                                                    exposeEvent.height);
+            _logger.LogWindowingSystemEvent("Processing expose event. Exposed area is [{0}, {1}] - {2}x{3}.",
+                                            exposeEvent.x,
+                                            exposeEvent.y,
+                                            exposeEvent.width,
+                                            exposeEvent.height);
                    
             d.BeginInvoke(() => {
                 var window = _windows.First(w => w.XWindow == exposeEvent.window);
@@ -362,7 +364,7 @@ namespace DotX.Platform.Linux.X
 
         private void DestroyWindow(X11.Window xWindow)
         {
-            Services.Logger.LogWindowingSystemEvent("Destroying window {0}.", xWindow);
+            _logger.LogWindowingSystemEvent("Destroying window {0}.", xWindow);
 
             var window = _windows.First(w => w.XWindow == xWindow);
             window.Close();
@@ -408,7 +410,7 @@ namespace DotX.Platform.Linux.X
 
         public void Dispose()
         {
-            Services.Logger.LogWindowingSystemEvent("Disposing platform...");
+            _logger.LogWindowingSystemEvent("Disposing platform...");
             XlibWrapper.XDestroyIC(InputContext);
             XlibWrapper.XCloseIM(InputMethod);
             

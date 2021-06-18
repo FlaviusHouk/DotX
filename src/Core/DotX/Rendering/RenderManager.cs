@@ -26,6 +26,7 @@ namespace DotX.Rendering
 
         private readonly Dispatcher _mainDispatcher;
         private readonly Thread _renderThread;
+        private readonly ILogger _logger;
 
         private readonly ManualResetEventSlim _threadLocker =
             new ManualResetEventSlim();
@@ -38,9 +39,10 @@ namespace DotX.Rendering
         private readonly ConcurrentQueue<RenderRequest> _pendingRequests =
             new ();
 
-        public RenderManager(Dispatcher mainThread)
+        public RenderManager(Dispatcher dispatcher)
         {
-            _mainDispatcher = mainThread;
+            _logger = Services.Logger;
+            _mainDispatcher = dispatcher;
 
             _renderThread = new Thread(RenderLoop);
             _renderThread.Name = "Render thread";
@@ -54,16 +56,16 @@ namespace DotX.Rendering
         {
             area ??= visualToInvalidate.RenderSize;
 
-            Services.Logger.LogRender("Received request to redraw area {0}.", area);
+            _logger.LogRender("Received request to redraw area {0}.", area);
 
             ImageSurface windowBuffer;
             object locker;
             
             (windowBuffer, locker) = InvalidateWindowBuffer(root);
 
-            Services.Logger.LogRender("Buffer surface has size {0}x{1}.", 
-                                      windowBuffer.Width, 
-                                      windowBuffer.Height);
+            _logger.LogRender("Buffer surface has size {0}x{1}.", 
+                              windowBuffer.Width, 
+                              windowBuffer.Height);
 
             var newRequest = new RenderRequest(visualToInvalidate, 
                                                root, 
@@ -93,7 +95,7 @@ namespace DotX.Rendering
                                             surface.Surface.Height);
 
             if(!surfaceRect.Contains(area))
-                Services.Logger.LogRender("Exposing area is bigger than surface");
+                _logger.LogRender("Exposing area is bigger than surface");
 
             var newRequest = new RenderRequest(null, 
                                                root, 
@@ -118,15 +120,15 @@ namespace DotX.Rendering
 
             if(!_windowBuffers.TryGetValue(root, out var pair))
             {
-                Services.Logger.LogRender("Creating buffer surface for new root...");
+                _logger.LogRender("Creating buffer surface for new root...");
 
                 bufferSurface = new ImageSurface(Format.Argb32, 
                                                  (int)renderSize.Width,
                                                  (int)renderSize.Height);
 
-                Services.Logger.LogRender("Size of the created surface is {0}x{1}.", 
-                                          bufferSurface.Width,
-                                          bufferSurface.Height);
+                _logger.LogRender("Size of the created surface is {0}x{1}.", 
+                                  bufferSurface.Width,
+                                  bufferSurface.Height);
                 
                 locker = new object();
 
@@ -141,14 +143,14 @@ namespace DotX.Rendering
             if(bufferSurface.Width < renderSize.Width ||
                bufferSurface.Height < renderSize.Height)
             {
-                Services.Logger.LogRender("Creating bigger surface for root visual...");
+                _logger.LogRender("Creating bigger surface for root visual...");
 
                 int newWidth = (int)Math.Max(bufferSurface.Width * 2, renderSize.Width);
                 int newHeight = (int)Math.Max(bufferSurface.Height * 2, renderSize.Height);
 
-                Services.Logger.LogRender("Size of the created surface is {0}x{1}.", 
-                                          newWidth,
-                                          newHeight);
+                _logger.LogRender("Size of the created surface is {0}x{1}.", 
+                                  newWidth,
+                                  newHeight);
 
                 lock(locker)
                 {
@@ -171,7 +173,7 @@ namespace DotX.Rendering
             {
                 if(!_renderQueue.TryDequeue(out var renderRequest))
                 {
-                    Services.Logger.LogRender("No elements to render. Blocking...");
+                    _logger.LogRender("No elements to render. Blocking...");
                     _threadLocker.Reset();
                     _threadLocker.Wait();
                 }
@@ -187,7 +189,7 @@ namespace DotX.Rendering
                     using var dispatcherLocker = _mainDispatcher.BlockProcessing();
                     lock (bufferSurface.Locker)
                     {
-                        Services.Logger.LogRender("Buffer locked. Starting draw cycle...");
+                        _logger.LogRender("Buffer locked. Starting draw cycle...");
 
                         using (var context = new Context(bufferSurface.Surface))
                         {
@@ -200,10 +202,10 @@ namespace DotX.Rendering
                 }
                 else
                 {
-                    Services.Logger.LogRender("Skip redraw. Renew exposed area.");
+                    _logger.LogRender("Skip redraw. Renew exposed area.");
                 }
 
-                Services.Logger.LogRender("Querying buffer swap...");
+                _logger.LogRender("Querying buffer swap...");
                 _pendingRequests.Enqueue(renderRequest);
                 _mainDispatcher.BeginInvoke(() => FlushToActualSurface(renderRequest), 
                                             OperationPriority.Render);
@@ -214,11 +216,11 @@ namespace DotX.Rendering
         {
             if(request.IsCanceled)
             {
-                Services.Logger.LogRender("Request is canceled. Skipping.");
+                _logger.LogRender("Request is canceled. Skipping.");
                 return;
             }
 
-            Services.Logger.LogRender("Swapping buffers...");
+            _logger.LogRender("Swapping buffers...");
 
             if (!_windowBuffers.TryGetValue(request.Root, out var bufferSurface))
                 throw new Exception();
