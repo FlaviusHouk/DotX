@@ -19,6 +19,9 @@ namespace DotX
         private static Lazy<IRenderManager> _renderManagerCreator =
             new(() => new RenderManager(Dispatcher.CurrentDispatcher));
 
+        private static Lazy<IInputManager> _inputManagerCreator =
+            new(() => new InputManager());
+
         internal static IServiceProvider Provider { get; private set; }
 
         public static ILogger Logger
@@ -45,6 +48,15 @@ namespace DotX
             {
                 return (IRenderManager)Provider.GetService(typeof(IRenderManager)) ??
                     _renderManagerCreator.Value;
+            }
+        }
+
+        public static IInputManager InputManager
+        {
+            get 
+            {
+                return (IInputManager)Provider.GetService(typeof(IInputManager)) ??
+                    _inputManagerCreator.Value;
             }
         }
 

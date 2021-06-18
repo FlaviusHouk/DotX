@@ -74,7 +74,11 @@ namespace DotX.Platform.Linux.X
                                                          X11.EventMask.StructureNotifyMask |
                                                          X11.EventMask.EnterWindowMask | 
                                                          X11.EventMask.LeaveWindowMask |
-                                                         X11.EventMask.PointerMotionMask);
+                                                         X11.EventMask.PointerMotionMask |
+                                                         X11.EventMask.KeyPressMask |
+                                                         X11.EventMask.KeyReleaseMask |
+                                                         X11.EventMask.ButtonPressMask |
+                                                         X11.EventMask.ButtonReleaseMask);
         }
 
         public void Show()

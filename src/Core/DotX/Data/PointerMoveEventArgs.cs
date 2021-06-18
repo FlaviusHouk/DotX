@@ -2,18 +2,13 @@ using System;
 
 namespace DotX.Data
 {
-    public class PointerMoveEventArgs : EventArgs
+    public class PointerMoveEventArgs : EventArgsWithCoords
     {
-        public int X { get; }
-
-        public int Y { get; }
-
         public bool IsLeaveWindow { get; }
 
-        public PointerMoveEventArgs(int x, int y, bool isLeaveWindow)
+        public PointerMoveEventArgs(int x, int y, bool isLeaveWindow) :
+            base(x, y)
         {
-            X = x;
-            Y = y;
             IsLeaveWindow = isLeaveWindow;
         }
     }

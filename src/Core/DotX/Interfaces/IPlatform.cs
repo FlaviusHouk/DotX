@@ -10,6 +10,9 @@ namespace DotX.Interfaces
         event Action<WindowEventArgs> WindowClosed;
 
         IWindowImpl CreateWindow(int width, int height);
+        
         void ListenToEvents();
+
+        string MapKeyToInput(KeyEventArgs keyEvent);
     }
 }

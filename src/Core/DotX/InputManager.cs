@@ -6,18 +6,13 @@ using DotX.Data;
 
 namespace DotX
 {
-    public class InputManager
+    internal class InputManager : IInputManager
     {
-        private static readonly Lazy<InputManager> _value =
-            new Lazy<InputManager>(() => new InputManager()); 
-
-        public static InputManager Instance => _value.Value;
-
         private readonly List<Visual> _currentlyHoveredVisuals = 
             new();
 
-        private InputManager()
-        {}
+        //TODO: Use Focus manager for this?
+        private IFocusable _focusedElement;
 
         public void DispatchPointerMove(Visual visualToTest, PointerMoveEventArgs pointerMoveEventArgs)
         {
@@ -49,6 +44,42 @@ namespace DotX
                 _currentlyHoveredVisuals.Remove(visual);
                 foundWidget?.OnPointerLeave(pointerMoveEventArgs);
             }
+        }
+
+        public void DispatchKeyEvent(IRootVisual root, KeyEventArgs args)
+        {
+            if(_focusedElement is IInputElement inputElement)
+                inputElement.OnKeyboardEvent(args);
+        }
+
+        public void DispatchPointerEvent(IRootVisual windowControl, PointerButtonEvent args)
+        {
+            var hitTest = new HitTestResult(args.X, 
+                                            args.Y);
+
+            var actualVisual = (Visual)windowControl;
+            actualVisual.HitTest(hitTest);
+
+            bool focusSet = false;
+            foreach(Visual v in hitTest.Result)
+            {
+                if(v is IFocusable focusable && !focusSet)
+                {
+                    if(focusable.Focus())
+                    {
+                        _focusedElement = focusable;
+                        focusSet = true;
+                    }
+                }
+
+                if(v is IInputElement inputElement)
+                    inputElement.OnPointerButton(args);
+            }
+        }
+
+        public virtual string MapKeyboarKeyValue(KeyEventArgs keyEventArgs)
+        {
+            return Application.CurrentApp.Platform.MapKeyToInput(keyEventArgs);
         }
     }
 }

@@ -188,6 +188,12 @@ namespace DotX.Widgets
         public virtual void OnPointerLeave(PointerMoveEventArgs eventArgs)
         {}
 
+        public virtual void OnPointerButton(PointerButtonEvent buttonEvent)
+        {}
+
+        public virtual void OnKeyboardEvent(KeyEventArgs keyEvent)
+        {}
+
         public void ApplyStyles()
         {
             var styles = this.GetStylesForElement(this);

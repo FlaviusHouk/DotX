@@ -11,23 +11,21 @@ using DotX.Extensions;
 namespace DotX.Platform.Linux.X
 {
     public class LinuxX11Platform : IPlatform
-    {
-        [DllImport("libX11.so.6")]
-        public static extern X11.Atom XInternAtom(IntPtr display, string name, bool only_if_exists);
-
-
-        [DllImport("libX11.so.6")]
-        public static extern String XGetAtomName(IntPtr display, X11.Atom atom);
-
+    { 
         private readonly Lazy<X11.Atom> _deleteProtocolAtomProvider;
         private X11.Atom WM_DELETE_PROTOCOL => _deleteProtocolAtomProvider.Value;
 
-        private X11.Atom WM_PROTOCOL => XInternAtom (Display, "WM_PROTOCOLS", false);
+        private X11.Atom WM_PROTOCOL => XlibWrapper.XInternAtom (Display, "WM_PROTOCOLS", false);
 
         private readonly IList<LinuxX11WindowImpl> _windows =
             new List<LinuxX11WindowImpl>();
 
+        private IInputManager _inputManager;
+
         public IntPtr Display { get; } 
+
+        internal IntPtr InputMethod { get; }
+        internal IntPtr InputContext { get; private set; }
 
         public event Action<WindowEventArgs> WindowCreated;
 
@@ -35,7 +33,18 @@ namespace DotX.Platform.Linux.X
         
         public LinuxX11Platform()
         {
+            XlibWrapper.setlocale(6, string.Empty);
+
+            if(!XlibWrapper.XSupportsLocale())
+                throw new Exception();
+
+            string oldMod = XlibWrapper.XSetLocaleModifiers(string.Empty);
+            Services.Logger.LogWindowingSystemEvent($"Locale modifiers are {oldMod}.");
+            if(oldMod is null)
+                throw new Exception();
+
             Display = Xlib.XOpenDisplay(null);
+            //Check xkb available
 
             //Xlib.XSetErrorHandler(OnError);
 
@@ -43,7 +52,13 @@ namespace DotX.Platform.Linux.X
                                                     WakeUp);
                                                     
             _deleteProtocolAtomProvider =
-                new Lazy<X11.Atom>(() => XInternAtom(Display, "WM_DELETE_WINDOW", false));
+                new Lazy<X11.Atom>(() => XlibWrapper.XInternAtom(Display, "WM_DELETE_WINDOW", false));
+
+            InputMethod = XlibWrapper.XOpenIM(Display, IntPtr.Zero, null, null);
+
+            //Marshal.FreeHGlobal(emptyCStr);
+
+            _inputManager = Services.InputManager;
         }
 
         private void WakeUp()
@@ -102,6 +117,13 @@ namespace DotX.Platform.Linux.X
             var wind = new LinuxX11WindowImpl(this, 
                                               width == 0 ? 1 : width, 
                                               height == 0 ? 1 : height);
+
+            InputContext = XlibWrapper.XCreateIC(InputMethod,
+                                                 "inputStyle", 0x0008 | 0x0400,
+                                                 "clientWindow", wind.XWindow,
+                                                 IntPtr.Zero);
+
+            XlibWrapper.XSetICFocus(InputContext);
 
             Services.Logger.LogWindowingSystemEvent("Window {0} created.", wind.XWindow);
 
@@ -185,7 +207,57 @@ namespace DotX.Platform.Linux.X
                     var motionEvent = Marshal.PtrToStructure<X11.XMotionEvent>(ev);
                     HandleMoveEvent(motionEvent, d);
                     break;
+
+                case (int)X11.Event.KeyPress:
+                case (int)X11.Event.KeyRelease:
+                    var keyEvent = Marshal.PtrToStructure<X11.XKeyEvent>(ev);
+                    HandleKeyEvent(keyEvent, d);
+                    break;
+
+                case (int)X11.Event.ButtonPress:
+                case (int)X11.Event.ButtonRelease:
+                    var mouseButtonEvent = Marshal.PtrToStructure<X11.XButtonEvent>(ev);
+                    HandlePointerEvent(mouseButtonEvent, d);
+                    break;
             }
+        }
+
+        private void HandlePointerEvent(X11.XButtonEvent mouseButtonEvent, Dispatcher d)
+        {
+            bool isPressed = mouseButtonEvent.type == (int)X11.Event.ButtonPress;
+            d.BeginInvoke(() => {
+                var window = _windows.First(w => w.XWindow == mouseButtonEvent.window);
+                var windowControl = Application.CurrentApp.Windows.First(w => w.WindowImpl == window);
+
+                Services.Logger.LogWindowingSystemEvent("Processing pointer event. Button {0} {1}.", 
+                                                         mouseButtonEvent.button,
+                                                         isPressed ? "pressed" : "released");
+
+                _inputManager.DispatchPointerEvent(windowControl,
+                                                   new PointerButtonEvent(mouseButtonEvent.x,
+                                                                          mouseButtonEvent.y,
+                                                                          (int)mouseButtonEvent.button,
+                                                                          isPressed));
+                
+            }, OperationPriority.Normal);
+        }
+
+        private void HandleKeyEvent(X11.XKeyEvent keyEvent,
+                                    Dispatcher d)
+        {
+            bool isPressed = keyEvent.type == (int)X11.Event.KeyPress;
+            d.BeginInvoke(() =>
+            {
+                var window = _windows.First(w => w.XWindow == keyEvent.window);
+                var windowControl = Application.CurrentApp.Windows.First(w => w.WindowImpl == window);
+
+                Services.Logger.LogWindowingSystemEvent("Processing key event. KeyCode is {0}.", 
+                                                         keyEvent.keycode);
+
+                _inputManager.DispatchKeyEvent(windowControl, 
+                                               new LinuxKeyEventArgs(isPressed,
+                                                                     keyEvent));
+            }, OperationPriority.Normal);
         }
 
         private void HandleMoveEvent(X11.XMotionEvent motionEvent, 
@@ -199,10 +271,10 @@ namespace DotX.Platform.Linux.X
                                                         motionEvent.x,
                                                         motionEvent.y);
 
-                InputManager.Instance.DispatchPointerMove((Visual)windowControl, 
-                                                          new PointerMoveEventArgs(motionEvent.x, 
-                                                                                   motionEvent.y,
-                                                                                   false));
+                _inputManager.DispatchPointerMove((Visual)windowControl, 
+                                                  new PointerMoveEventArgs(motionEvent.x, 
+                                                                           motionEvent.y,
+                                                                           false));
 
             }, OperationPriority.Normal);
         }
@@ -220,10 +292,10 @@ namespace DotX.Platform.Linux.X
                                                             crossingEvent.x,
                                                             crossingEvent.y);
 
-                    InputManager.Instance.DispatchPointerMove((Visual)windowControl, 
-                                                              new PointerMoveEventArgs(crossingEvent.x, 
-                                                                                       crossingEvent.y,
-                                                                                       true));
+                    _inputManager.DispatchPointerMove((Visual)windowControl, 
+                                                      new PointerMoveEventArgs(crossingEvent.x, 
+                                                                               crossingEvent.y,
+                                                                               isLeaveWindow: true));
                 }
             }, OperationPriority.Normal);
         }
@@ -322,9 +394,23 @@ namespace DotX.Platform.Linux.X
             }
         } 
 
+        public string MapKeyToInput(KeyEventArgs keyEvent)
+        {
+            if(keyEvent is not LinuxKeyEventArgs linuxKeyEvent)
+                throw new Exception();
+
+            if(!keyEvent.IsPressed)
+                return null;
+
+            return XlibWrapper.XLookupStringWrapper(InputContext,
+                                                    linuxKeyEvent.NativeEvent);
+        }
+
         public void Dispose()
         {
             Services.Logger.LogWindowingSystemEvent("Disposing platform...");
+            XlibWrapper.XDestroyIC(InputContext);
+            XlibWrapper.XCloseIM(InputMethod);
             
             Xlib.XCloseDisplay(Display);
         }

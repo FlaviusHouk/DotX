@@ -1,21 +1,25 @@
-using Cairo;
 using DotX.Brush;
-using DotX.Extensions;
+using DotX.Data;
+using DotX.Interfaces;
 using DotX.Widgets.Animations;
 using DotX.Widgets.Text;
 using Pango;
 
 namespace DotX.Widgets
 {
-    public class TextBox : TextBase
+    public class TextBox : TextBase, IFocusable
     {
         private readonly TextPointerVisual _textPointer;
         private readonly VisibilityAnimation _pointerAnimation;
+
+        private readonly IInputManager _inputManager;
         
         private readonly Layout _layout;
         
         private uint _linePosition = 0;
         private uint _charPosition = 0;
+
+        public bool CanFocus => true;
 
         public TextBox()
         {
@@ -27,6 +31,8 @@ namespace DotX.Widgets
 
             _layout = new Layout(_defaultContext);
             _layout.SetText(" ");
+
+            _inputManager = Services.InputManager;
         }
 
         protected override Cairo.Rectangle MeasureCore(Cairo.Rectangle size)
@@ -68,6 +74,18 @@ namespace DotX.Widgets
                 _textPointer.Render(context);
 
             CairoHelper.ShowLayout(context, renderLayout);
+        }
+
+        public bool Focus()
+        {
+            return true;
+        }
+
+        public override void OnKeyboardEvent(KeyEventArgs keyEvent)
+        {
+            base.OnKeyboardEvent(keyEvent);
+
+            string valueToAppend = _inputManager.MapKeyboarKeyValue(keyEvent);
         }
     }
 }

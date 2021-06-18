@@ -9,5 +9,9 @@ namespace DotX.Interfaces
         void OnPointerMove(PointerMoveEventArgs pointerMoveEventArgs);
         
         void OnPointerLeave(PointerMoveEventArgs eventArgs);
+
+        void OnPointerButton(PointerButtonEvent buttonEvent);
+
+        void OnKeyboardEvent(KeyEventArgs keyEvent);
     }
 }
