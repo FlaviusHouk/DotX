@@ -58,8 +58,6 @@ namespace DotX.Platform.Linux.X
 
             InputMethod = XlibWrapper.XOpenIM(Display, IntPtr.Zero, null, null);
 
-            //Marshal.FreeHGlobal(emptyCStr);
-
             _inputManager = Services.InputManager;
         }
 
@@ -256,8 +254,11 @@ namespace DotX.Platform.Linux.X
                 _logger.LogWindowingSystemEvent("Processing key event. KeyCode is {0}.", 
                                                  keyEvent.keycode);
 
+                X11.KeySym keySym = Xlib.XKeycodeToKeysym(Display, (X11.KeyCode)keyEvent.keycode, 0);
+
                 _inputManager.DispatchKeyEvent(windowControl, 
-                                               new LinuxKeyEventArgs(isPressed,
+                                               new LinuxKeyEventArgs((int)keySym,
+                                                                     isPressed,
                                                                      keyEvent));
             }, OperationPriority.Normal);
         }

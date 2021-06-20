@@ -15,8 +15,8 @@ namespace DotX.PropertySystem
 
         public PropertyMetadata(PropertyOptions options,
                                 TValue defaultValue,
-                                Func<TOwner, TValue, TValue> coerceFunc,
-                                Action<TOwner, TValue, TValue> changeValueFunc)
+                                Func<TOwner, TValue, TValue> coerceFunc = default,
+                                Action<TOwner, TValue, TValue> changeValueFunc = default)
         {
             Options = options;
             DefaultValue = defaultValue;

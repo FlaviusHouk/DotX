@@ -6,9 +6,10 @@ namespace DotX.Platform.Linux.X
     internal class LinuxKeyEventArgs : KeyEventArgs
     {
         public XKeyEvent NativeEvent { get; }
-        public LinuxKeyEventArgs(bool isPressed,
+        public LinuxKeyEventArgs(int key,
+                                 bool isPressed,
                                  XKeyEvent nativeEvent) : 
-            base((int)nativeEvent.keycode, isPressed)
+            base(key, isPressed)
         {
             NativeEvent = nativeEvent;
         }

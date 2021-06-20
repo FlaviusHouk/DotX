@@ -8,8 +8,8 @@ namespace DotX.PropertySystem
     {
         public VisualPropertyMetadata(PropertyOptions options,
                                       TValue defaultValue, 
-                                      Func<TOwner, TValue, TValue> coerceFunc, 
-                                      Action<TOwner, TValue, TValue> changeValueFunc) :
+                                      Func<TOwner, TValue, TValue> coerceFunc = default, 
+                                      Action<TOwner, TValue, TValue> changeValueFunc = default) :
             base(options, defaultValue, coerceFunc, changeValueFunc)
         {}
 

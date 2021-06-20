@@ -17,21 +17,32 @@ namespace DotX.Widgets.Text
 
         public static readonly CompositeObjectProperty TextProperty =
             CompositeObjectProperty.RegisterProperty<string,TextBase>(nameof(Text),
-                                                                       PropertyOptions.Inherits);
+                                                                      PropertyOptions.Inherits |
+                                                                      PropertyOptions.AffectsMeaure |
+                                                                      PropertyOptions.AffectsArrange |
+                                                                      PropertyOptions.AffectsRender);
 
         public static readonly CompositeObjectProperty FontSizeProperty =
             CompositeObjectProperty.RegisterProperty<int, TextBase>(nameof(FontSize),
-                                                                     PropertyOptions.Inherits,
+                                                                     PropertyOptions.Inherits |
+                                                                     PropertyOptions.AffectsMeaure |
+                                                                     PropertyOptions.AffectsArrange |
+                                                                     PropertyOptions.AffectsRender,
                                                                      changeValueFunc: OnFontSizePropertyChanged);
 
-        private static void OnFontSizePropertyChanged(TextBase textBlock, int oldValue, int newValue)
+        private static void OnFontSizePropertyChanged(TextBase textObj, 
+                                                      int oldValue, 
+                                                      int newValue)
         {
-            textBlock.RebuildFontDescription();
+            textObj.RebuildFontDescription();
         }
 
         public static readonly CompositeObjectProperty FontFamilyProperty =
             CompositeObjectProperty.RegisterProperty<string, TextBase>(nameof(FontFamily),
-                                                                        PropertyOptions.Inherits,
+                                                                        PropertyOptions.Inherits |
+                                                                        PropertyOptions.AffectsMeaure |
+                                                                        PropertyOptions.AffectsArrange |
+                                                                        PropertyOptions.AffectsRender,
                                                                         changeValueFunc: OnFontFamilyPropertyChanged);
 
         private static void OnFontFamilyPropertyChanged(TextBase textBlock, string oldValue, string newValue)

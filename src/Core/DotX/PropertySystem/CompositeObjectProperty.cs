@@ -59,6 +59,18 @@ namespace DotX.PropertySystem
             PropertyManager.Instance.RegisterProperty<TOwner>(overridenProp);
         }
 
+        public static void OverrideProperty<TOwner>(CompositeObjectProperty prop,
+                                                    IPropertyMetadata metadata)
+            where TOwner : CompositeObject
+        {
+            var overridenProp = 
+                new CompositeObjectProperty(prop.PropName,
+                                            prop.PropertyType,
+                                            metadata);
+
+            PropertyManager.Instance.RegisterProperty<TOwner>(overridenProp);
+        }
+
         private static IPropertyMetadata CreateMetadata<TOwner, TVal>(PropertyOptions options,
                                                                       TVal value,
                                                                       Func<TOwner, TVal, TVal> coerceFunc = default,
