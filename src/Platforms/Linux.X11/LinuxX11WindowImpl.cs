@@ -17,6 +17,7 @@ namespace DotX.Platform.Linux.X
         private readonly LinuxX11Platform _platform;
 
         private XlibSurface _cairoSurface;
+        private X11.Cursor? _textCursor;
 
         public event RenderRequest Dirty;
         public event ResizingDelegate Resizing;
@@ -133,6 +134,29 @@ namespace DotX.Platform.Linux.X
             Xlib.XSetWindowBackground(_platform.Display,
                                       XWindow,
                                       color.pixel);
+        }
+
+        public void SetCursor(Cursors cursor)
+        {
+            const uint TextCursor = 152;
+            if(cursor == Cursors.None)
+            {
+                Xlib.XUndefineCursor(_platform.Display,
+                                     XWindow);
+            }
+            else if (cursor == Cursors.Text)
+            {
+                if(!_textCursor.HasValue)
+                    _textCursor = Xlib.XCreateFontCursor(_platform.Display, (X11.FontCursor)TextCursor);
+
+                Xlib.XDefineCursor(_platform.Display,
+                                   XWindow,
+                                   _textCursor.Value);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
         }
 
         public void Dispose()

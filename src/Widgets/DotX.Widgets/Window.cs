@@ -9,6 +9,17 @@ namespace DotX.Widgets
 {
     public class Window : Control, IRootVisual
     {
+        public static readonly CompositeObjectProperty CursorProperty =
+            CompositeObjectProperty.RegisterProperty<Cursors, Window>(nameof(Cursor),
+                                                                      PropertyOptions.Inherits,
+                                                                      Cursors.None,
+                                                                      changeValueFunc: OnCursorPropertyChanged);
+
+        private static void OnCursorPropertyChanged(Window window, Cursors oldValue, Cursors newValue)
+        {
+            window.WindowImpl.SetCursor(newValue);
+        }
+
         static Window()
         {
             CompositeObjectProperty.OverrideProperty<bool, Window>(IsVisibleProperty,
@@ -29,6 +40,12 @@ namespace DotX.Widgets
         public IWindowImpl WindowImpl { get; }
 
         public Rectangle? DirtyArea => _dirtyArea;
+
+        public Cursors Cursor
+        {
+            get => GetValue<Cursors>(CursorProperty);
+            set => SetValue(CursorProperty, value);
+        }
 
         public Window()
         {

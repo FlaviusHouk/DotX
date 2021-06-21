@@ -14,6 +14,8 @@ namespace DotX.Interfaces
 
         void UpdateBackground(IBrush brush);
 
+        void SetCursor(Cursors cursor);
+
         void Close();
         
         Surface WindowSurface { get; }

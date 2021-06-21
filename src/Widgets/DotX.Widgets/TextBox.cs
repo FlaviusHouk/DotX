@@ -2,6 +2,7 @@ using System.Linq;
 using System.Text;
 using DotX.Brush;
 using DotX.Data;
+using DotX.Extensions;
 using DotX.Interfaces;
 using DotX.PropertySystem;
 using DotX.Widgets.Animations;
@@ -147,6 +148,30 @@ namespace DotX.Widgets
             string valueToAppend = _inputManager.MapKeyboarKeyValue(keyEvent);
 
             AppendText(valueToAppend);
+        }
+
+        public override void OnPointerEnter(PointerMoveEventArgs eventArgs)
+        {
+            Window root = default;
+            this.TraverseTop<Window>(c => 
+            {
+                root = c;
+                return true;
+            });
+
+            root.Cursor = Cursors.Text;
+        }
+
+        public override void OnPointerLeave(PointerMoveEventArgs eventArgs)
+        {
+            Window root = default;
+            this.TraverseTop<Window>(c => 
+            {
+                root = c;
+                return true;
+            });
+
+            root.Cursor = Cursors.None;
         }
 
         private void AppendText(string valueToAppend)
