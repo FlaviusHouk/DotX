@@ -58,7 +58,9 @@ namespace DotX.Widgets
             var strongRect = new Pango.Rectangle();
             var weakRect = new Pango.Rectangle();
 
-            _layout.GetCursorPos(_charPosition, out strongRect, out weakRect);
+            _layout.GetCursorPos(_layout.Lines[_linePosition].StartIndex + _charPosition, 
+                                 out strongRect, 
+                                 out weakRect);
             double height = strongRect.Height / Pango.Scale.PangoScale;
 
             _textPointer.Measure(new Cairo.Rectangle(strongRect.X / Pango.Scale.PangoScale + size.X,
@@ -124,20 +126,22 @@ namespace DotX.Widgets
                 return;
             }
             else if(keyEvent.Key == 0xff53 && 
-                    _charPosition < _layout.Lines[_linePosition].Length) //right
+                    (_charPosition < _layout.Lines[_linePosition].Length ||
+                    _linePosition < _layout.LineCount)) //right
             {
-                _charPosition++;
-
                 if(Text[_charPosition] == '\r' ||
                    Text[_charPosition] == '\n')
+                {
                    _linePosition++;
+                   _charPosition = 0;
+                }
+                else
+                {
+                    _charPosition++;
+                }
 
                 InvalidateMeasure();
                 return;
-            }
-            else if(keyEvent.Key == 0xff0d)
-            {
-                _linePosition++;
             }
             else if(keyEvent.Key == 0xff08)
             {
@@ -148,6 +152,12 @@ namespace DotX.Widgets
             string valueToAppend = _inputManager.MapKeyboarKeyValue(keyEvent);
 
             AppendText(valueToAppend);
+
+            if(keyEvent.Key == 0xff0d)
+            {
+                _linePosition++;
+                InvalidateMeasure();
+            }
         }
 
         public override void OnPointerEnter(PointerMoveEventArgs eventArgs)
@@ -172,6 +182,43 @@ namespace DotX.Widgets
             });
 
             root.Cursor = Cursors.None;
+        }
+
+        public override void OnPointerButton(PointerButtonEvent buttonEvent)
+        {
+            const int LeftButton = 1;
+            base.OnPointerButton(buttonEvent);
+
+            if(!buttonEvent.IsPressed)
+                return;
+
+            if(buttonEvent.Key == LeftButton)
+            {
+                int x = (int)((buttonEvent.X - RenderSize.X) * Pango.Scale.PangoScale);
+                int y = (int)((buttonEvent.Y - RenderSize.Y) * Pango.Scale.PangoScale);
+
+                bool isInside = 
+                    _layout.XyToIndex(x, y,
+                                      out int index,
+                                      out int trailing);
+
+                if(!isInside)
+                    return;
+
+                int i = 0;
+                var currentLine = _layout.Lines[0];
+                for(;i<_layout.LineCount - 1; i++)
+                {
+                    if(_layout.Lines[i+1].StartIndex > index)
+                        break;
+
+                    currentLine = _layout.Lines[i];
+                }
+
+                _linePosition = (uint)i;
+                _charPosition = index - currentLine.StartIndex;
+                InvalidateMeasure();
+            }
         }
 
         private void AppendText(string valueToAppend)
