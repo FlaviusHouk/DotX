@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using DotX.Interfaces;
@@ -34,6 +33,14 @@ namespace DotX
                                         OperationPriority.Background);
 
             }, animatable, animatable.Period, animatable.Period));
+        }
+
+        public void Reset(IAnimatable animatable)
+        {
+            if(!_timerDictionary.TryGetValue(animatable, out var timer))
+                throw new Exception();
+
+            timer.Change(animatable.Period, animatable.Period);
         }
     }
 }

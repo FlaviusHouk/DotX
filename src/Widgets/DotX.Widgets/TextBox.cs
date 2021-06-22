@@ -31,6 +31,7 @@ namespace DotX.Widgets
         private readonly VisibilityAnimation _pointerAnimation;
 
         private readonly IInputManager _inputManager;
+        private readonly ITimeline _timeline;
         
         private readonly Layout _layout;
         
@@ -50,6 +51,7 @@ namespace DotX.Widgets
             _layout = new Layout(_defaultContext);
 
             _inputManager = Services.InputManager;
+            _timeline = Services.Timeline;
         }
 
         protected override Cairo.Rectangle MeasureCore(Cairo.Rectangle size)
@@ -123,6 +125,7 @@ namespace DotX.Widgets
                    _linePosition--;
 
                 InvalidateMeasure();
+                InvalidateTextPointer();
                 return;
             }
             else if(keyEvent.Key == 0xff53 && 
@@ -141,6 +144,7 @@ namespace DotX.Widgets
                 }
 
                 InvalidateMeasure();
+                InvalidateTextPointer();
                 return;
             }
             else if(keyEvent.Key == 0xff08)
@@ -218,6 +222,7 @@ namespace DotX.Widgets
                 _linePosition = (uint)i;
                 _charPosition = index - currentLine.StartIndex;
                 InvalidateMeasure();
+                InvalidateTextPointer();
             }
         }
 
@@ -244,6 +249,7 @@ namespace DotX.Widgets
 
             _charPosition += valueToAppend.Length;
             InvalidateMeasure();
+            InvalidateTextPointer();
         }
 
         private void RemoveChar()
@@ -262,7 +268,11 @@ namespace DotX.Widgets
             }
             else
             {
-                currentLine = currentLine.Remove(_charPosition, 1);
+                if(currentLine.Length == _charPosition)
+                    currentLine = currentLine.Substring(0, currentLine.Length - 1);
+                else
+                    currentLine = currentLine.Remove(_charPosition - 1, 1);
+
                 _charPosition--;
             }
 
@@ -288,6 +298,17 @@ namespace DotX.Widgets
 
             Text = sb.ToString();
             InvalidateMeasure();
+            InvalidateTextPointer();
+        }
+
+        private void InvalidateTextPointer()
+        {
+            _timeline.Reset(_pointerAnimation);
+            
+            if(_textPointer.IsVisible)
+                Invalidate();
+            else
+                _textPointer.IsVisible = true;
         }
     }
 }
