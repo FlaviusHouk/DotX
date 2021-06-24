@@ -6,9 +6,10 @@ namespace DotX.PropertySystem
     public enum PropertyOptions
     {
         Inherits = 1,
-        AffectsMeaure = 1<<1,
-        AffectsArrange = 1<<2,
-        AffectsRender = 1<<3,
-        AffectsParentRender = 1<<4
+        AvailableForChildren = 1<<1,
+        AffectsMeaure = 1<<2,
+        AffectsArrange = 1<<3,
+        AffectsRender = 1<<4,
+        AffectsParentRender = 1<<5
     }
 }

@@ -1,5 +1,4 @@
 using Cairo;
-using DotX.Interfaces;
 using DotX.Extensions;
 using DotX.Data;
 

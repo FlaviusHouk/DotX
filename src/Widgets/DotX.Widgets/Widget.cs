@@ -73,7 +73,8 @@ namespace DotX.Widgets
 
         
         public Widget LogicalParent { get; internal set; }
-        public ICollection<Visual> VisualChildren { get; }
+        public ICollection<Visual> VisualChildren { get; } =
+            new List<Visual>();
 
         public int Width 
         {

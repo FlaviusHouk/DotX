@@ -15,11 +15,10 @@ namespace DotX.PropertySystem
 
         public override void Changed<T>(CompositeObject obj, T oldVal, T newVal)
         {
-            if(EqualityComparer<T>.Default.Equals(oldVal, newVal))
-                return;
-                
             if(obj is not Visual v)
                 throw new InvalidOperationException();
+
+            base.Changed(obj, oldVal, newVal);
 
             if(Options.HasFlag(PropertyOptions.AffectsMeaure))
                 v.InvalidateMeasure();
@@ -32,8 +31,6 @@ namespace DotX.PropertySystem
 
             if(Options.HasFlag(PropertyOptions.AffectsParentRender))
                 v.VisualParent?.Invalidate();
-
-            base.Changed(obj, oldVal, newVal);
         }
     }
 }

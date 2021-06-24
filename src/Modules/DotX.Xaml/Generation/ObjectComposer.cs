@@ -12,6 +12,10 @@ namespace DotX.Xaml.Generation
 {
     public class ObjectComposer
     {
+        static ObjectComposer()
+        {
+            Converters.Converters.RegisterConverter(typeof(IPropertyValue), new PropertyValueConverter());
+        }
         public static void Compose(object objToCompose)
         {
             Type objType = objToCompose.GetType();
@@ -25,32 +29,26 @@ namespace DotX.Xaml.Generation
             using var xamlReader = new DotX.Xaml.XamlReader(resourceReader);
 
             XamlObject thisObj = xamlReader.Parse();
-            var composer = new ObjectComposer(objToCompose, thisObj);
-            composer.Compose();
+            var composer = new ObjectComposer();
+            composer.Compose(objToCompose, thisObj);
         }
 
         private record ObjectInto (object Target, XamlObject Info)
         {}
 
-        private readonly object _target;
-        private readonly XamlObject _description;
-
-        public ObjectComposer(object target, 
-                              XamlObject description)
+        public void Compose(object target,
+                            XamlObject desc)
         {
-            _target = target;
-            _description = description;
+            SetProperties(target, desc.Properties);
 
-            Converters.Converters.RegisterConverter(typeof(IPropertyValue), new PropertyValueConverter());
+            var childObjects = desc.Children.Select(c => ProcessObject(c)).ToArray();
+
+            AssignContent(target, childObjects);
         }
 
-        public void Compose()
+        public object Build(XamlObject thisObj)
         {
-            SetProperties(_target, _description.Properties);
-
-            var childObjects = _description.Children.Select(c => ProcessObject(c)).ToArray();
-
-            AssignContent(_target, childObjects);
+            return ProcessObject(thisObj).Target;
         }
 
         private ObjectInto ProcessObject(XamlObject obj)
@@ -189,6 +187,10 @@ namespace DotX.Xaml.Generation
             else if (memberToSet.PropertyType.IsAssignableFrom(typeof(Visual)))
             {
                 memberToSet.SetValue(target, targets.Cast<Visual>().Single());
+            }
+            else if(memberToSet.PropertyType == typeof(IVisualTreeGenerator) && children.Count == 1)
+            {
+                memberToSet.SetValue(target, new TemplateVisualGenerator(children.First().Info));
             }
             else
             {

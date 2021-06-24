@@ -29,7 +29,7 @@ namespace DotX.Xaml
             _reader = new XmlTextReader(input);
             _contexts.Push(XamlParseContext.CreateRootContext());
 
-            //Add option to modify it by user
+            //TODO: Add option to modify it by user
             CurrentContext.AddNamespace(new XamlNamespace(string.Empty, "DotX.Styling", "DotX"));
             CurrentContext.AddNamespace(new XamlNamespace(string.Empty, "DotX.Xaml.MarkupExtensions", "DotX.Xaml"));
             CurrentContext.AddNamespace(new XamlNamespace(string.Empty, "DotX.Brush", "DotX"));
