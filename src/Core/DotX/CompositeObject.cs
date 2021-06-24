@@ -1,12 +1,16 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using DotX.Interfaces;
 using DotX.PropertySystem;
 
 namespace DotX
 {
-    public class CompositeObject
+    public class CompositeObject : IObservable<CompositeObjectProperty>
     {
+        private ICollection<IObserver<CompositeObjectProperty>> _observers =
+            new List<IObserver<CompositeObjectProperty>>();
+
         public CompositeObject()
         {
             var props = PropertyManager.Instance.GetProperties(GetType());
@@ -33,6 +37,16 @@ namespace DotX
             return propVal.GetValue<T>();
         }
 
+        public IPropertyValue GetValue(CompositeObjectProperty prop)
+        {
+            if(!CanSet(prop))
+                throw new System.Exception();
+
+            prop = PropertyManager.Instance.GetVirtualProperty(GetType(), prop);
+                
+            return ValueStorage.Storage.GetValue(this, prop);
+        }
+
         public void SetValue(CompositeObjectProperty prop, IPropertyValue value)
         {
             if(!CanSet(prop))
@@ -46,7 +60,7 @@ namespace DotX
         public void SetValue<T>(CompositeObjectProperty prop, T value)
         {
             if(!CanSet(prop))
-                throw new System.Exception();
+                throw new Exception();
 
             prop = PropertyManager.Instance.GetVirtualProperty(GetType(), prop);
 
@@ -73,6 +87,7 @@ namespace DotX
             }
 
             prop.Metadata.Changed(this, oldValue, value);
+            NotifyPropertyChanged(prop);
         }
 
         public bool TryGetProperty(string propName, out CompositeObjectProperty prop)
@@ -91,6 +106,22 @@ namespace DotX
         private bool CanSet(CompositeObjectProperty prop)
         {
             return PropertyManager.Instance.IsPropertyAvailable(GetType(), prop);
+        }
+
+        public IDisposable Subscribe(IObserver<CompositeObjectProperty> observer)
+        {
+            if(observer is null)
+                throw new ArgumentNullException(nameof(observer));
+
+            _observers.Add(observer);
+
+            return new SubscriptionHolder<CompositeObjectProperty>(_observers, observer);
+        }
+
+        protected void NotifyPropertyChanged(CompositeObjectProperty prop)
+        {
+            foreach(var observer in _observers)
+                observer.OnNext(prop);
         }
     }
 }

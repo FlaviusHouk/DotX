@@ -5,6 +5,7 @@ namespace DotX.PropertySystem
     [Flags]
     public enum PropertyOptions
     {
+        None = 0,
         Inherits = 1,
         AvailableForChildren = 1<<1,
         AffectsMeaure = 1<<2,

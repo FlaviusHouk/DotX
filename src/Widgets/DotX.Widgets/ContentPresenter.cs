@@ -67,6 +67,7 @@ namespace DotX.Widgets
         }
 
         private bool _changingSource = false;
+        private CompositeObjectPropertyBinding _contentBinding;
 
         public CompositeObject TemplatedParent
         {
@@ -78,14 +79,21 @@ namespace DotX.Widgets
         {
             base.OnInitialize();
 
-            //TODO: use binding
+            InvalidateSource();
         }
 
         private void InvalidateSource()
         {
+            if(_contentBinding is not null)
+                _contentBinding.Dispose();
+                
             if(SourceProperty is not null)
             {
-                Content = TemplatedParent.GetValue<Visual>(SourceProperty);
+                _contentBinding = 
+                    new CompositeObjectPropertyBinding(TemplatedParent,
+                                                       this,
+                                                       SourceProperty,
+                                                       ContentProperty);
             }
             else if(ContentSourceName is not null)
             {
