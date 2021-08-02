@@ -68,11 +68,13 @@ namespace DotX.Widgets
             }
         }
 
-        public override void Render(Context context)
+        protected override void OnRender(Context context)
         {
-            base.Render(context);
+            context.Save();
+            base.OnRender(context);
+            context.Restore();
 
-            if (!IsVisible || Child is null)
+            if (Child is null)
                 return;
 
             Child.Render(context);
@@ -84,32 +86,31 @@ namespace DotX.Widgets
                 oldWidget.LogicalParent = null;
 
             if(newValue?.VisualParent is not null)
-                throw new Exception("Already have a parent");
+                throw new Exception("Already has a parent");
 
             if(newValue is Widget newWidget)
                 newWidget.LogicalParent = this;
         }
 
-        protected override Rectangle MeasureCore(Rectangle size)
+        protected override Size MeasureCore(Size size)
         {
-            if(!IsVisible || Child is null)
-                return new Rectangle(size.X, size.Y, 0, 0);
+            if(Child is null)
+                return new (0, 0);
 
-            Rectangle adjustedSize = size.Subtract(Padding);
-            Widget w = default;
-            if(Child is Widget)
+            var offset = Padding;
+            if(Child is Widget w)
             {
-                w = (Widget)Child;
-                adjustedSize = adjustedSize.Subtract(w.Margin);
+                offset = new (offset.Left + w.Margin.Left,
+                              offset.Top + w.Margin.Top,
+                              offset.Right + w.Margin.Right,
+                              offset.Bottom + w.Margin.Bottom);
             }
+
+            Size adjustedSize = size.Subtract(offset);
 
             Child.Measure(adjustedSize);
 
-            Rectangle desiredSize = Child.DesiredSize.Add(Padding);
-            if(w is not null)
-                desiredSize = desiredSize.Add(w.Margin);
-
-            return desiredSize;
+            return base.MeasureCore(Child.DesiredSize.Add(offset));
         }
 
         protected override Rectangle ArrangeCore(Rectangle size)
@@ -117,21 +118,21 @@ namespace DotX.Widgets
             if(!IsVisible || Child is null)
                 return new Rectangle(size.X, size.Y, 0, 0);
 
-            Rectangle adjustedSize = size.Subtract(Padding);
-            Widget w = default;
-            if(Child is Widget)
+            Margin margin = Padding;
+            if(Child is Widget w)
             {
-                w = (Widget)Child;
-                adjustedSize = adjustedSize.Subtract(w.Margin);
+                margin = new (margin.Left + w.Margin.Left,
+                              margin.Top + w.Margin.Top,
+                              margin.Right + w.Margin.Right,
+                              margin.Bottom + w.Margin.Bottom);
             }
 
-            Child.Arrange(adjustedSize);
+            Child.Arrange(size.Subtract(margin));
 
-            Rectangle renderSize = Child.RenderSize.Add(Padding);
-            if(w is not null)
-                renderSize = renderSize.Add(w.Margin);
-            
-            return renderSize;
+            if(Stretch == StretchBehavior.Stretch)
+                return size;
+            else
+                return Child.RenderSize.Add(margin);
         }
 
         protected override void ApplyStylesForChildren()

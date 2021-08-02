@@ -71,7 +71,7 @@ namespace DotX.Widgets
         private void Resizing(int width, int height)
         {
             _dirtyArea = default;
-            Measure(new Rectangle(0,0, width, height));
+            Measure(new (width, height));
 
             Invalidate();
         }
@@ -97,7 +97,7 @@ namespace DotX.Widgets
             _renderManager.Expose(this, _dirtyArea ?? dirtyRect);            
         }
 
-        protected override Rectangle MeasureCore(Rectangle size)
+        protected override Size MeasureCore(Size size)
         {
             base.MeasureCore(size);
 

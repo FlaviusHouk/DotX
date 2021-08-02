@@ -40,7 +40,11 @@ namespace DotX
                 visual.IsArrangeDirty = true;
             }
 
-            visual.Arrange(visual.DesiredSize);
+            Rectangle arrangeRect = 
+                visual.DesiredSize.ToRectangle(visual.RenderSize.X, 
+                                               visual.RenderSize.Y);
+
+            visual.Arrange(arrangeRect);
         }
 
         public void InitiateRender(Visual visual, Rectangle? area)

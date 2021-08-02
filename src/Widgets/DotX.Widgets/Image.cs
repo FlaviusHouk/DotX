@@ -1,4 +1,5 @@
 using Cairo;
+using DotX.Data;
 using DotX.Extensions;
 using DotX.PropertySystem;
 
@@ -16,17 +17,15 @@ namespace DotX.Widgets
             set => SetValue(ImageSourceProperty, value);
         }
 
-        protected override Rectangle MeasureCore(Rectangle size)
+        protected override Size MeasureCore(Size size)
         {
-            return new Rectangle(size.X,
-                                 size.Y,
-                                 Source.Width,
-                                 Source.Height);
+            return new (Source.Width,
+                        Source.Height);
         }
 
-        public override void Render(Context context)
+        protected override void OnRender(Context context)
         {
-            base.Render(context);
+            base.OnRender(context);
 
             context.Rectangle(RenderSize);
             context.Image(Source);

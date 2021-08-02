@@ -6,12 +6,10 @@ namespace DotX
 {
     public abstract class Visual : CompositeObject
     {
-        public abstract void Render(Context context);
-
-        protected abstract Rectangle MeasureCore(Rectangle size);
+        protected abstract Size MeasureCore(Size size);
         protected abstract Rectangle ArrangeCore(Rectangle size);
 
-        public Rectangle DesiredSize { get; private set; }
+        public Size DesiredSize { get; private set; }
 
         public Rectangle RenderSize { get; private set; }
 
@@ -34,7 +32,7 @@ namespace DotX
             LayoutManager.Instance.InvalidateMeasure(this);
         }
 
-        public void Measure(Rectangle size)
+        public virtual void Measure(Size size)
         {
             DesiredSize = MeasureCore(size);
             IsMeasureDirty = false;
@@ -49,7 +47,7 @@ namespace DotX
             LayoutManager.Instance.InvalidateArrange(this);
         }
 
-        public void Arrange(Rectangle size)
+        public virtual void Arrange(Rectangle size)
         {
             RenderSize = ArrangeCore(size);
             IsArrangeDirty = false;
@@ -69,5 +67,20 @@ namespace DotX
             if(RenderSize.IsPointInside(result.PointToTest))
                 result.AddVisual(this);
         }
+
+        public virtual void Render(Context context)
+        {
+            context.Save();
+
+            context.MoveTo(RenderSize.X, RenderSize.Y);
+            OnRender(context);
+
+            context.Rectangle(RenderSize);
+            context.Clip();
+
+            context.Restore();
+        }
+
+        protected abstract void OnRender(Context context);
     }
 }

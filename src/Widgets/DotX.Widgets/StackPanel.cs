@@ -1,47 +1,45 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cairo;
+using DotX.Data;
 using DotX.Extensions;
 
 namespace DotX.Widgets
 {
     public class StackPanel : Panel
     {
-        private static Rectangle GetRestSize(Rectangle occupiedSize,
-                                             Rectangle givenSize,
-                                             Orientation orientation)
+        private static Size GetRestSize(Size occupiedSize,
+                                        Size givenSize,
+                                        Orientation orientation)
         {
-            double x, y, width, height;
+            double width, height;
 
-            if(orientation == Orientation.Vertical)
+            if (orientation == Orientation.Vertical)
             {
-                x = givenSize.X;
-                y = givenSize.Y + occupiedSize.Height;
                 width = givenSize.Width;
                 height = givenSize.Height - occupiedSize.Height;
-                
-                if(height < 0)
+
+                if (height < 0)
                     height = 0;
             }
             else
             {
-                x = givenSize.X + occupiedSize.Width;
-                y = givenSize.Y;
                 width = givenSize.Width - occupiedSize.Width;
                 height = givenSize.Height;
-                
-                if(width < 0)
+
+                if (width < 0)
                     width = 0;
             }
 
-            return new Rectangle(x, y, width, height);
+            return new(width, height);
         }
 
         private static Rectangle Merge(IEnumerable<Rectangle> rectangles, Orientation orientation)
         {
             double x, y, width, height;
 
-            if(orientation == Orientation.Vertical)
+            if (orientation == Orientation.Vertical)
             {
                 x = rectangles.Select(rect => rect.X).Min();
                 y = rectangles.Select(rect => rect.Y).Min();
@@ -59,90 +57,114 @@ namespace DotX.Widgets
             return new Rectangle(x, y, width, height);
         }
 
+        private static Size Merge(IEnumerable<Size> rectangles, Orientation orientation)
+        {
+            double width, height;
+
+            if (orientation == Orientation.Vertical)
+            {
+                width = rectangles.Select(rect => rect.Width).Max();
+                height = rectangles.Select(rect => rect.Height).Sum();
+            }
+            else
+            {
+                width = rectangles.Select(rect => rect.Width).Sum();
+                height = rectangles.Select(rect => rect.Height).Max();
+            }
+
+            return new(width, height);
+        }
+
         public Widgets.Orientation Orientation { get; set; }
 
-        protected override Rectangle MeasureCore(Rectangle size)
+        protected override Size MeasureCore(Size size)
         {
-            if(Children.Count < 1 || !IsVisible)
-                return new Rectangle(size.X, size.Y, 0, 0);
+            if (Children.Count < 1)
+                return new(0, 0);
 
-            size = size.Subtract(Padding);
+            Size adjustedSize = size.Subtract(Padding);
 
-            var firstChild = Children.First();
+            foreach (var child in Children)
+            {
+                Margin margin = default;
+                if(child is Widget w)
+                    margin = w.Margin;;
 
-            size = MeasureChild(firstChild, size);
+                child.Measure(adjustedSize.Subtract(margin));
 
-            foreach(var child in Children.Skip(1))
-                size = MeasureChild(child, size);
-
-            return Merge(Children.Select(c => c is Widget w ?
-                                                w.DesiredSize.Add(w.Margin) :
-                                                c.DesiredSize), 
-                                        Orientation).Add(Padding);
+                adjustedSize =
+                    GetRestSize(child.DesiredSize.Add(margin),
+                                adjustedSize,
+                                Orientation);
+            }
+            
+            return base.MeasureCore(Merge(Children.Select(c => c.DesiredSize),
+                                    Orientation).Add(Padding));
         }
 
         protected override Rectangle ArrangeCore(Rectangle size)
         {
-            if(Children.Count < 1 || !IsVisible)
-                return new Rectangle(size.X, size.Y, 0,0);
+            if (Children.Count < 1)
+                return new Rectangle(size.X, size.Y, 0, 0);
 
-            size = size.Subtract(Padding);
+            Rectangle allSize = size;
+            bool isHorizontal = Orientation == Orientation.Horizontal;
+            double x = size.X + Padding.Left,
+                   y = size.Y + Padding.Top,
+                   width = size.Width - Padding.Left - Padding.Right,
+                   height = size.Height - Padding.Top - Padding.Bottom;
 
-            var firstChild = Children.First();
-
-            size = ArrangeChild(firstChild, size);
-
-            foreach(var child in Children.Skip(1))
-                size = ArrangeChild(child, size);
-
-            return Merge(Children.Select(c => c is Widget w ?
-                                                w.RenderSize.Add(w.Margin) : 
-                                                c.RenderSize), 
-                         Orientation).Add(Padding);
-        }
-
-        private Rectangle MeasureChild(Visual child, Rectangle size)
-        {
-            Widget widget = default;
-            Rectangle adjustedSize = size;
-            
-            if(child is Widget)
+            foreach (var child in Children)
             {
-                widget = (Widget)child;
-                adjustedSize = size.Subtract(widget.Margin);
+                Margin margin = default;
+                if(child is Widget w)
+                    margin = w.Margin;
+
+                Rectangle givenRect = 
+                    new (x, y,
+                         isHorizontal ?
+                             child.DesiredSize.Width :
+                             width,
+                         isHorizontal ?
+                             height :
+                             child.DesiredSize.Height);
+
+                child.Arrange(givenRect.Subtract(margin));
+
+                if (Orientation == Orientation.Vertical)
+                {
+                    y += child.RenderSize.Height + margin.Top + margin.Bottom;
+                    width = size.Width;
+                    height = size.Height - child.RenderSize.Height - margin.Top - margin.Bottom;
+
+                    if (height < 0)
+                        height = 0;
+                }
+                else
+                {
+                    x += child.RenderSize.Width + margin.Left + margin.Right;
+                    width = size.Width - child.RenderSize.Width - margin.Left - margin.Right;
+                    height = size.Height;
+
+                    if (width < 0)
+                        width = 0;
+                }
             }
 
-            child.Measure(adjustedSize);
-            
-            Rectangle desiredSize = child.DesiredSize;
-            if(widget is not null)
-                desiredSize = desiredSize.Add(widget.Margin);
-
-            return GetRestSize(desiredSize, 
-                               size, 
-                               Orientation);
-        }
-
-        private Rectangle ArrangeChild(Visual child, Rectangle size)
-        {
-            Widget widget = default;
-            Rectangle adjustedSize = size;
-            
-            if(child is Widget)
+            if (Orientation == Orientation.Horizontal)
             {
-                widget = (Widget)child;
-                adjustedSize = size.Subtract(widget.Margin);
+                return new Rectangle(allSize.X,
+                                     allSize.Y,
+                                     allSize.Width,
+                                     Children.Select(c => c.RenderSize.Height).Max());
             }
-
-            child.Arrange(adjustedSize);
-            
-            Rectangle renderSize = child.RenderSize;
-            if(widget is not null)
-                renderSize = renderSize.Add(widget.Margin);
-
-            return GetRestSize(renderSize, 
-                               size, 
-                               Orientation);
+            else
+            {
+                return new Rectangle(allSize.X,
+                                     allSize.Y,
+                                     Children.Select(c => c.RenderSize.Width).Max(),
+                                     allSize.Height);
+            }
         }
     }
 }

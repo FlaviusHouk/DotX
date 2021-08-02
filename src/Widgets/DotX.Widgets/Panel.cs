@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Cairo;
-using DotX.Interfaces;
 using DotX.Data;
 using DotX.Attributes;
 
@@ -41,27 +40,12 @@ namespace DotX.Widgets
             child.VisualParent = default; //while there are no templates it is ok.
         }
 
-        public override void Render(Context context)
+        protected override void OnRender(Context context)
         {
-            if(!IsVisible)
-                return;
-
-            base.Render(context);
+            base.OnRender(context);
 
             foreach(var child in Children)
-            {
-                if(child is Widget widget && !widget.IsVisible)
-                    continue;
-
-                context.Save();
-                context.Rectangle(child.RenderSize);
-                context.Clip();
-                context.MoveTo(child.RenderSize.X, child.RenderSize.Y);
-                
                 child.Render(context);
-
-                context.Restore();
-            }
         }
 
         protected override void ApplyStylesForChildren()
@@ -73,9 +57,7 @@ namespace DotX.Widgets
         public override void HitTest(HitTestResult result)
         {
             foreach(var child in Children)
-            {
                 child.HitTest(result);
-            }
 
             base.HitTest(result);
         }

@@ -46,6 +46,10 @@ namespace DotX.Xaml.Generation
             if(_valueType != ValueType.String)
                 throw new NotImplementedException();
 
+            if(typeof(T).IsEnum && 
+               Enum.TryParse(typeof(T), _rawValue, false, out var value))
+               return (T)value;
+
             var converter = Converters.Converters.GetConverterForType(typeof(T));
             return (T)converter.Convert(_rawValue, typeof(T));
         }
@@ -60,7 +64,7 @@ namespace DotX.Xaml.Generation
 
         public override T SetValue<T>(T value)
         {
-            throw new System.NotImplementedException();
+            throw new NotSupportedException();
         }
     }
 }

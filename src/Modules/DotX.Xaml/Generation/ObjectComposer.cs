@@ -105,6 +105,14 @@ namespace DotX.Xaml.Generation
                           .GetProperty(prop.PropertyName)
                           .SetValue(target, inlineProp.RawValue);
                 }
+                else if(inlineProp is not null &&
+                        prop.PropertyType.IsEnum &&
+                        Enum.TryParse(prop.PropertyType, inlineProp.RawValue, true, out var enumValue))
+                {
+                    target.GetType()
+                          .GetProperty(prop.PropertyName)
+                          .SetValue(target, enumValue);
+                }
                 else if (fullProp is not null)
                 {
                     var clrProp = target.GetType()

@@ -11,6 +11,18 @@
             </Style.Setters>
         </Style>
 
+        <Style Selector="TextBlock">
+            <Style.Setters>
+                <Setter Property="Stretch" Value="SizeToContent"/>
+            </Style.Setters>
+        </Style>
+
+        <Style Selector="Button">
+            <Style.Setters>
+                <Setter Property="Stretch" Value="SizeToContent"/>
+            </Style.Setters>
+        </Style>
+
         <Style Selector="TextBlock:greet">
             <Style.Setters>
                 <Setter Property="FontSize" Value="12"/>
@@ -24,19 +36,34 @@
 
     <StackPanel>
         <Border Foreground="{ StaticResource Key=BorderForeground }" Padding="10">
-            <StackPanel>
+            <StackPanel Orientation="Horizontal">
                 <TextBlock Text="Hello!" Foreground="0;0;0" Classes="greet"
                            FontFamily = "Liberation Serif" />
                 <TextBlock Text="Second." Foreground="0;0;0" FontSize="15"
                            FontFamily="Source Code Pro Regular" />
             </StackPanel>
         </Border>
+
+        <Border Foreground="0,2;0,4;0,6" Padding="10">
+            <StackPanel Orientation="Horizontal">
+                <Button>
+                    <TextBlock Text="Press me!" Foreground="0;0;0" FontSize="15"
+                               FontFamily="Source Code Pro Regular" />
+                </Button>
+                <Button>
+                    <TextBlock Text="Press me!" Foreground="0;0;0" FontSize="15"
+                               FontFamily="Source Code Pro Regular" />
+                </Button>
+            </StackPanel>
+        </Border>
         
         <Border Foreground="0;0,5;0,5"
-                Margin="0;5;0;0" Padding="2">
-            <StackPanel>
+                Margin="0;5;0;0" Padding="20">
+            <StackPanel Background="0,7;0;0,7">
                 <TextBlock Text="Hello!" Foreground="0;0;0" Classes="greet"
-                           FontFamily = "Liberation Serif" />
+                           FontFamily = "Liberation Serif" 
+                           Background="1;0,5;0"/>
+
                 <TextBlock Text="Third." Foreground="0;0;0" FontSize="15"
                            FontFamily="Source Code Pro Regular"
                            Padding="10;0;0;0" Background="1;1;1"/>

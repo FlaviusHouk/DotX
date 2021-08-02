@@ -54,7 +54,7 @@ namespace DotX.Widgets
             _timeline = Services.Timeline;
         }
 
-        protected override Cairo.Rectangle MeasureCore(Cairo.Rectangle size)
+        protected override Size MeasureCore(Size size)
         {
             var wholeSize = base.MeasureCore(size);
             var strongRect = new Pango.Rectangle();
@@ -65,26 +65,22 @@ namespace DotX.Widgets
                                  out weakRect);
             double height = strongRect.Height / Pango.Scale.PangoScale;
 
-            _textPointer.Measure(new Cairo.Rectangle(strongRect.X / Pango.Scale.PangoScale + size.X,
-                                                     strongRect.Y / Pango.Scale.PangoScale + size.Y,
-                                                     1,
-                                                     height));
+            _textPointer.Measure(new(1, height));
 
             return wholeSize;
         }
 
         protected override Cairo.Rectangle ArrangeCore(Cairo.Rectangle size)
         {
-            var wholeSize = base.ArrangeCore(size);
             _textPointer.Arrange(size);
-            return wholeSize;
+            return new Cairo.Rectangle(size.X, size.Y, size.Width - Margin.Left - Margin.Right * 5, size.Height);
         }
 
-        public override void Render(Cairo.Context context)
+        protected override void OnRender(Cairo.Context context)
         {
             using var renderLayout = _layout.Copy();
 
-            base.Render(context);
+            base.OnRender(context);
 
             context.MoveTo(RenderSize.X + Padding.Left, 
                            RenderSize.Y + Padding.Top);
@@ -92,15 +88,7 @@ namespace DotX.Widgets
             CairoHelper.ShowLayout(context, renderLayout);
 
             if(_textPointer.IsVisible)
-            {
-                context.Save();
-                context.Rectangle(_textPointer.RenderSize);
-                context.Clip();
-
                 _textPointer.Render(context);
-
-                context.Restore();
-            }
         }
 
         public bool Focus()

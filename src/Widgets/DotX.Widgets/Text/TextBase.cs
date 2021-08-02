@@ -52,11 +52,11 @@ namespace DotX.Widgets.Text
 
         public static readonly CompositeObjectProperty FontWeightProperty =
             CompositeObjectProperty.RegisterProperty<FontWeight, TextBase>(nameof(FontWeight),
-                                                                            PropertyOptions.Inherits);
+                                                                           PropertyOptions.Inherits);
 
         public static readonly CompositeObjectProperty TextAlignmentProperty =
             CompositeObjectProperty.RegisterProperty<Alignment, TextBase>(nameof(TextAlignment),
-                                                                           PropertyOptions.Inherits);
+                                                                          PropertyOptions.Inherits);                   
 
         protected FontDescription _font;
 

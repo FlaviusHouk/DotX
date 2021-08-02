@@ -1,4 +1,5 @@
 using Cairo;
+using DotX.Extensions;
 using DotX.PropertySystem;
 
 namespace DotX.Widgets.Text
@@ -18,7 +19,7 @@ namespace DotX.Widgets.Text
             Width = 1;
         }
 
-        public override void Render(Context context)
+        protected override void OnRender(Context context)
         {
             context.Rectangle(RenderSize);
             Foreground.ApplyTo(context);
@@ -27,7 +28,7 @@ namespace DotX.Widgets.Text
 
         protected override Rectangle ArrangeCore(Rectangle size)
         {
-            return DesiredSize;
+            return DesiredSize.ToRectangle(size.X, size.Y);
         }
     }
 }

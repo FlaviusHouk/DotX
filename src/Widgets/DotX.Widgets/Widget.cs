@@ -71,6 +71,13 @@ namespace DotX.Widgets
                                                                          w.Invalidate();
                                                                      });
 
+        public static readonly CompositeObjectProperty StretchBehaviorProperty =
+            CompositeObjectProperty.RegisterProperty<StretchBehavior, Widget>(nameof(Stretch),
+                                                                              PropertyOptions.Inherits |
+                                                                              PropertyOptions.AffectsArrange |
+                                                                              PropertyOptions.AffectsRender,
+                                                                              StretchBehavior.Stretch);
+
         
         public Widget LogicalParent { get; internal set; }
         public ICollection<Visual> VisualChildren { get; } =
@@ -118,6 +125,12 @@ namespace DotX.Widgets
             set => SetValue(PaddingProperty, value);
         }
 
+        public StretchBehavior Stretch
+        {
+            get => GetValue<StretchBehavior>(StretchBehaviorProperty);
+            set => SetValue(StretchBehaviorProperty, value);
+        }
+
         public bool IsInitialized
         {
             get;
@@ -136,19 +149,27 @@ namespace DotX.Widgets
         public ResourceCollection Resources { get; }
             = new ResourceCollection();
 
+        public sealed override void Render(Context context)
+        {
+            if(!IsVisible)
+                return;
+
+            base.Render(context);
+        }
+
         protected override Rectangle ArrangeCore(Rectangle size)
         {
             if(!IsVisible)
                 new Rectangle();
 
-            return size.Subtract(Padding);
+            if(Stretch == StretchBehavior.Stretch)
+                return size;
+            else
+                return DesiredSize.ToRectangle(size.X, size.Y);
         }
-
-        protected override Rectangle MeasureCore(Rectangle size)
+        
+        protected override Size MeasureCore(Size size)
         {
-            if(!IsVisible)
-                new Rectangle();
-
             double width = size.Width;
             double height = size.Height;
 
@@ -158,26 +179,17 @@ namespace DotX.Widgets
             if(IsPropertySet(HeightProperty))
                 height = Height;
 
-            size = new Rectangle(size.X,
-                                 size.Y,
-                                 width,
-                                 height);
-
-            return size.Subtract(Padding);
+            return new (width, height);
         }
 
-        public override void Render(Context context)
+        protected override void OnRender(Context context)
         {
             if(Background is null)
                 return;
 
-            context.Save();
-
             Background.ApplyTo(context);
             context.Rectangle(RenderSize);
             context.Fill();
-
-            context.Restore();
         }
 
         public virtual void OnPointerEnter(PointerMoveEventArgs eventArgs)

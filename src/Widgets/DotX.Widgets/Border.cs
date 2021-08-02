@@ -1,4 +1,5 @@
 using Cairo;
+using DotX.Data;
 using DotX.PropertySystem;
 
 namespace DotX.Widgets
@@ -23,15 +24,13 @@ namespace DotX.Widgets
             set => SetValue(BorderThicknessProperty, value);
         }
 
-        protected override Rectangle MeasureCore(Rectangle size)
+        protected override Size MeasureCore(Size size)
         {
-            Rectangle availableSize = GetContentArea(size);
-            Rectangle contentSize = base.MeasureCore(availableSize);
+            Size availableSize = GetContentArea(size);
+            Size contentSize = base.MeasureCore(availableSize);
 
-            return new Rectangle(size.X, 
-                                 size.Y, 
-                                 contentSize.Width + BorderThickness * 2,
-                                 contentSize.Height + BorderThickness * 2);
+            return new (contentSize.Width + BorderThickness * 2,
+                        contentSize.Height + BorderThickness * 2);
         }
 
         protected override Rectangle ArrangeCore(Rectangle size)
@@ -45,11 +44,12 @@ namespace DotX.Widgets
                                  contentSize.Height + BorderThickness * 2);
         }
 
-        public override void Render(Context context)
+        protected override void OnRender(Context context)
         {
-            base.Render(context);
-
-            context.Save();
+            context.MoveTo(RenderSize.X + BorderThickness / 2.0,
+                           RenderSize.Y + BorderThickness / 2.0);
+                           
+            base.OnRender(context);
 
             Foreground.ApplyTo(context);
             context.LineWidth = BorderThickness;
@@ -58,14 +58,26 @@ namespace DotX.Widgets
                               RenderSize.Width - BorderThickness,
                               RenderSize.Height - BorderThickness);
             context.Stroke();
-            
-            context.Restore();
+        }
+
+        private Size GetContentArea(Size size)
+        {
+            double width = size.Width - BorderThickness * 2, 
+                   height = size.Height - BorderThickness * 2;
+
+            if(width < 0)
+                width = 0;
+
+            if(height < 0)
+                height = 0;
+
+            return new (width, height);
         }
 
         private Rectangle GetContentArea(Rectangle size)
         {
-            double x = size.X + BorderThickness, 
-                   y = size.Y + BorderThickness, 
+            double x = size.X + BorderThickness,
+                   y = size.Y + BorderThickness,
                    width = size.Width - BorderThickness * 2, 
                    height = size.Height - BorderThickness * 2;
 
@@ -75,7 +87,7 @@ namespace DotX.Widgets
             if(height < 0)
                 height = 0;
 
-            return new Rectangle(x, y, width, height);
+            return new (x, y, width, height);
         }
     }
 }
