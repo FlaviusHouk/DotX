@@ -15,7 +15,8 @@ namespace DotX.Rendering
             new ();
 
         public DispatcherRenderManager(Dispatcher dispatcher) : 
-            base(Services.Logger)
+            base(Services.Logger,
+                 Services.BackBufferFactory)
         {
             _mainDispatcher = dispatcher;
         }
@@ -27,15 +28,9 @@ namespace DotX.Rendering
             area ??= visualToInvalidate.RenderSize;
 
             Logger.LogRender("Received request to redraw area {0}.", area);
-
-            ImageSurface windowBuffer;
-            object locker;
             
-            (windowBuffer, locker) = InvalidateWindowBuffer(root);
-
-            Logger.LogRender("Buffer surface has size {0}x{1}.", 
-                              windowBuffer.Width, 
-                              windowBuffer.Height);
+            (Surface windowBuffer, object locker) = 
+                InvalidateWindowBuffer(root);
 
             var newRequest = new RenderRequest(visualToInvalidate, 
                                                root, 
@@ -64,8 +59,8 @@ namespace DotX.Rendering
                 return;
             
             var surfaceRect = new Rectangle(0, 0, 
-                                            surface.Surface.Width, 
-                                            surface.Surface.Height);
+                                            surface.Width, 
+                                            surface.Height);
 
             if(!surfaceRect.Contains(area))
                 Logger.LogRender("Exposing area is bigger than surface");
@@ -74,6 +69,8 @@ namespace DotX.Rendering
                                                root, 
                                                area,
                                                false);
+
+            _pendingRequests.Enqueue(newRequest);
 
             _mainDispatcher.BeginInvoke(() => ProcessRenderRequest(), 
                                         OperationPriority.Render);

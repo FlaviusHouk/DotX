@@ -92,9 +92,9 @@ namespace DotX.Widgets
         private void WindowDirty(RenderEventArgs args)
         {
             var dirtyRect = new Rectangle(args.X, args.Y, args.Width, args.Height);
-            MarkDirtyArea(dirtyRect);
+            //MarkDirtyArea(dirtyRect);
 
-            _renderManager.Expose(this, _dirtyArea ?? dirtyRect);            
+            _renderManager.Expose(this, dirtyRect);            
         }
 
         protected override Size MeasureCore(Size size)

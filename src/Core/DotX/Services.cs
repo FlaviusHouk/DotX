@@ -22,6 +22,9 @@ namespace DotX
         private static Lazy<IInputManager> _inputManagerCreator =
             new(() => new InputManager());
 
+        private static Lazy<IBackBufferFactory> _backBufferFactoryCreator =
+            new(() => new InMemoryBackBufferFactory());
+
         internal static IServiceProvider Provider { get; private set; }
 
         public static ILogger Logger
@@ -48,6 +51,15 @@ namespace DotX
             {
                 return (IRenderManager)Provider.GetService(typeof(IRenderManager)) ??
                     _renderManagerCreator.Value;
+            }
+        }
+        
+        public static IBackBufferFactory BackBufferFactory
+        {
+            get
+            {
+                return (IBackBufferFactory)Provider.GetService(typeof(IBackBufferFactory)) ??
+                    _backBufferFactoryCreator.Value;
             }
         }
 
