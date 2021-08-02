@@ -9,28 +9,12 @@ using System;
 
 namespace DotX.Rendering
 {
-    internal class RenderManager : IRenderManager
+    internal class MultiThreadRenderManager : DoubleBufferedManager, IRenderManager, IDisposable
     {
-        //Add pool?
-        private record SurfaceWrapper(ImageSurface Surface,
-                                      object Locker) : IDisposable
-        {
-            public void Dispose()
-            {
-                lock(Locker)
-                {
-                    Surface.Dispose();
-                }
-            }
-        }
-
         private readonly Dispatcher _mainDispatcher;
         private readonly Thread _renderThread;
-        private readonly ILogger _logger;
 
         private readonly ManualResetEventSlim _threadLocker =
-            new ManualResetEventSlim();
-        private readonly Dictionary<IRootVisual, SurfaceWrapper> _windowBuffers =
             new();
 
         private readonly ConcurrentQueue<RenderRequest> _renderQueue =
@@ -39,9 +23,11 @@ namespace DotX.Rendering
         private readonly ConcurrentQueue<RenderRequest> _pendingRequests =
             new ();
 
-        public RenderManager(Dispatcher dispatcher)
+        private bool _isDisposed;
+
+        public MultiThreadRenderManager(Dispatcher dispatcher)  : 
+            base(Services.Logger)
         {
-            _logger = Services.Logger;
             _mainDispatcher = dispatcher;
 
             _renderThread = new Thread(RenderLoop);
@@ -56,14 +42,14 @@ namespace DotX.Rendering
         {
             area ??= visualToInvalidate.RenderSize;
 
-            _logger.LogRender("Received request to redraw area {0}.", area);
+            Logger.LogRender("Received request to redraw area {0}.", area);
 
             ImageSurface windowBuffer;
             object locker;
             
             (windowBuffer, locker) = InvalidateWindowBuffer(root);
 
-            _logger.LogRender("Buffer surface has size {0}x{1}.", 
+            Logger.LogRender("Buffer surface has size {0}x{1}.", 
                               windowBuffer.Width, 
                               windowBuffer.Height);
 
@@ -87,7 +73,7 @@ namespace DotX.Rendering
         public void Expose(IRootVisual root,
                            Rectangle area)
         {
-            if(!_windowBuffers.TryGetValue(root, out var surface))
+            if(!WindowBuffers.TryGetValue(root, out var surface))
                 return;
             
             var surfaceRect = new Rectangle(0, 0, 
@@ -95,7 +81,7 @@ namespace DotX.Rendering
                                             surface.Surface.Height);
 
             if(!surfaceRect.Contains(area))
-                _logger.LogRender("Exposing area is bigger than surface");
+                Logger.LogRender("Exposing area is bigger than surface");
 
             var newRequest = new RenderRequest(null, 
                                                root, 
@@ -112,76 +98,24 @@ namespace DotX.Rendering
             _threadLocker.Set();
         }
 
-        private (ImageSurface, object) InvalidateWindowBuffer(IRootVisual root)
-        {
-            ImageSurface bufferSurface;
-            object locker;
-            var renderSize = ((Visual)root).RenderSize;
-
-            if(!_windowBuffers.TryGetValue(root, out var pair))
-            {
-                _logger.LogRender("Creating buffer surface for new root...");
-
-                bufferSurface = new ImageSurface(Format.Argb32, 
-                                                 (int)renderSize.Width,
-                                                 (int)renderSize.Height);
-
-                _logger.LogRender("Size of the created surface is {0}x{1}.", 
-                                  bufferSurface.Width,
-                                  bufferSurface.Height);
-                
-                locker = new object();
-
-                _windowBuffers.Add(root,
-                                   new SurfaceWrapper(bufferSurface, locker));
-
-                return (bufferSurface, locker);
-            }
-
-            (bufferSurface, locker) = pair;
-
-            if(bufferSurface.Width < renderSize.Width ||
-               bufferSurface.Height < renderSize.Height)
-            {
-                _logger.LogRender("Creating bigger surface for root visual...");
-
-                int newWidth = (int)Math.Max(bufferSurface.Width * 2, renderSize.Width);
-                int newHeight = (int)Math.Max(bufferSurface.Height * 2, renderSize.Height);
-
-                _logger.LogRender("Size of the created surface is {0}x{1}.", 
-                                  newWidth,
-                                  newHeight);
-
-                lock(locker)
-                {
-                    bufferSurface.Dispose();
-
-                    bufferSurface = new ImageSurface(Format.Argb32, 
-                                                     newWidth,
-                                                     newHeight);
-                }
-
-                _windowBuffers[root] = new SurfaceWrapper(bufferSurface, locker);
-            }
-
-            return (bufferSurface, locker);
-        }
-
         private void RenderLoop(object obj)
         {
-            while(true)
+            while(!_isDisposed)
             {
                 if(!_renderQueue.TryDequeue(out var renderRequest))
                 {
-                    _logger.LogRender("No elements to render. Blocking...");
+                    if(_isDisposed)
+                        return;
+
+                    Logger.LogRender("No elements to render. Blocking...");
                     _threadLocker.Reset();
                     _threadLocker.Wait();
                 }
 
-                if(renderRequest is null)
+                if(renderRequest is null || _isDisposed)
                     continue;
 
-                if(!_windowBuffers.TryGetValue(renderRequest.Root, out var bufferSurface))
+                if(!WindowBuffers.TryGetValue(renderRequest.Root, out var bufferSurface))
                     _mainDispatcher.Invoke(() => throw new Exception());
 
                 if (renderRequest.Redraw)
@@ -189,7 +123,7 @@ namespace DotX.Rendering
                     using var dispatcherLocker = _mainDispatcher.BlockProcessing();
                     lock (bufferSurface.Locker)
                     {
-                        _logger.LogRender("Buffer locked. Starting draw cycle...");
+                        Logger.LogRender("Buffer locked. Starting draw cycle...");
 
                         using (var context = new Context(bufferSurface.Surface))
                         {
@@ -202,10 +136,10 @@ namespace DotX.Rendering
                 }
                 else
                 {
-                    _logger.LogRender("Skip redraw. Renew exposed area.");
+                    Logger.LogRender("Skip redraw. Renew exposed area.");
                 }
 
-                _logger.LogRender("Querying buffer swap...");
+                Logger.LogRender("Querying buffer swap...");
                 _pendingRequests.Enqueue(renderRequest);
                 _mainDispatcher.BeginInvoke(() => FlushToActualSurface(renderRequest), 
                                             OperationPriority.Render);
@@ -216,13 +150,13 @@ namespace DotX.Rendering
         {
             if(request.IsCanceled)
             {
-                _logger.LogRender("Request is canceled. Skipping.");
+                Logger.LogRender("Request is canceled. Skipping.");
                 return;
             }
 
-            _logger.LogRender("Swapping buffers...");
+            Logger.LogRender("Swapping buffers...");
 
-            if (!_windowBuffers.TryGetValue(request.Root, out var bufferSurface))
+            if (!WindowBuffers.TryGetValue(request.Root, out var bufferSurface))
                 throw new Exception();
 
             using var context = new Context(request.Root.WindowImpl.WindowSurface);
@@ -235,6 +169,11 @@ namespace DotX.Rendering
             }
 
             _pendingRequests.TryDequeue(out var _);
+        }
+
+        public void Dispose()
+        {
+            _isDisposed = true;
         }
     }
 }

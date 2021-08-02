@@ -17,7 +17,7 @@ namespace DotX
             new(() => new DummyLogger());
 
         private static Lazy<IRenderManager> _renderManagerCreator =
-            new(() => new RenderManager(Dispatcher.CurrentDispatcher));
+            new(() => new DispatcherRenderManager(Dispatcher.CurrentDispatcher));
 
         private static Lazy<IInputManager> _inputManagerCreator =
             new(() => new InputManager());
