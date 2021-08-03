@@ -5,16 +5,11 @@ using DotX.Interfaces;
 
 namespace DotX
 {
-    internal class LayoutManager
+    public class LayoutManager : ILayoutManager
     {
-        private static readonly Lazy<LayoutManager> _value =
-            new Lazy<LayoutManager>(() => new LayoutManager());
-
-        public static LayoutManager Instance => _value.Value;
-
         private readonly IRenderManager _renderManager; 
 
-        private LayoutManager()
+        public LayoutManager()
         {
             _renderManager = Services.RenderManager;
         }

@@ -6,6 +6,9 @@ namespace DotX
 {
     public abstract class Visual : CompositeObject
     {
+        private Size _previousGivenSize = default;
+        private Rectangle? _previousArrangeRect = default;
+
         protected abstract Size MeasureCore(Size size);
         protected abstract Rectangle ArrangeCore(Rectangle size);
 
@@ -29,13 +32,20 @@ namespace DotX
                 return;
 
             IsMeasureDirty = true;
-            LayoutManager.Instance.InvalidateMeasure(this);
+            Services.LayoutManager.InvalidateMeasure(this);
         }
 
         public virtual void Measure(Size size)
         {
+            if(!IsMeasureDirty &&
+               size == _previousGivenSize)
+            {
+               return;
+            }
+
             DesiredSize = MeasureCore(size);
             IsMeasureDirty = false;
+            _previousGivenSize = size;
         }
 
         public void InvalidateArrange()
@@ -44,13 +54,20 @@ namespace DotX
                 return;
 
             IsArrangeDirty = true;
-            LayoutManager.Instance.InvalidateArrange(this);
+            Services.LayoutManager.InvalidateArrange(this);
         }
 
         public virtual void Arrange(Rectangle size)
         {
+            if(!IsArrangeDirty &&
+               _previousArrangeRect == size)
+            {
+                return;
+            }
+
             RenderSize = ArrangeCore(size);
             IsArrangeDirty = false;
+            _previousArrangeRect = size;
         }
 
         public void Invalidate(Rectangle? area = default)
@@ -59,7 +76,7 @@ namespace DotX
             DirtyArea = area ?? RenderSize;
 
             IsDirty = true;
-            LayoutManager.Instance.InitiateRender(this, area);
+            Services.LayoutManager.InitiateRender(this, area);
         }
 
         public virtual void HitTest(HitTestResult result)

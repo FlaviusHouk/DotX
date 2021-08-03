@@ -16,5 +16,17 @@ namespace DotX.Data
             width = Width;
             height = Height;
         }
+
+        public static bool operator ==(Size one, Size second)
+        {
+            return one.Width == second.Width &&
+                   one.Height == second.Height;
+        }
+
+        public static bool operator != (Size one, Size second)
+        {
+            return one.Width != second.Width ||
+                   one.Height != second.Height;
+        }
     }
 }

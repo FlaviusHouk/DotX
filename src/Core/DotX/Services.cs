@@ -52,6 +52,11 @@ namespace DotX
             get => Provider.GetService<IInputManager>();
         }
 
+        public static ILayoutManager LayoutManager
+        {
+            get => Provider.GetService<ILayoutManager>();
+        }
+
         public static void Initialize(IServiceContainer services)
         {
             if(Provider is not null)
@@ -67,6 +72,9 @@ namespace DotX
 
             if(!Provider.IsRegistered<ILogger>())
                 Provider.RegisterSingleton<ILogger, DummyLogger>(); 
+
+            if(!Provider.IsRegistered<ILayoutManager>())
+                Provider.RegisterSingleton<ILayoutManager, LayoutManager>();
         }
     }
 }
