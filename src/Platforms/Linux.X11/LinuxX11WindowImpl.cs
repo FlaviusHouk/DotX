@@ -13,7 +13,7 @@ namespace DotX.Platform.Linux.X
     {
         private bool _isClosing;
         private readonly X11.Window _window;
-        private readonly IntPtr _visual;
+        public IntPtr Visual { get; }
         private readonly LinuxX11Platform _platform;
 
         private XlibSurface _cairoSurface;
@@ -37,7 +37,7 @@ namespace DotX.Platform.Linux.X
 
                     _cairoSurface = new XlibSurface(_platform.Display,
                                                     new IntPtr((long)(ulong)_window),
-                                                    _visual,
+                                                    Visual,
                                                     (int)attr.width,
                                                     (int)attr.height);
                 }
@@ -53,23 +53,23 @@ namespace DotX.Platform.Linux.X
             _platform = platform;
             X11.XSetWindowAttributes attributes = new X11.XSetWindowAttributes();
             var screen = Xlib.XDefaultScreen(_platform.Display);
-            _visual = Xlib.XDefaultVisual(_platform.Display, screen);
+            Visual = Xlib.XDefaultVisual(_platform.Display, screen);
             var depth = Xlib.XDefaultDepth(_platform.Display, screen);
             attributes.background_pixel = 0;
             attributes.bit_gravity = 10;
 
             _window = Xlib.XCreateWindow(platform.Display,
-                               Xlib.XDefaultRootWindow(platform.Display),
-                               300,
-                               300,
-                               (uint)width,
-                               (uint)height,
-                               1,
-                               depth,
-                               1,
-                               _visual,
-                               1<<1 | 1<<4,
-                               ref attributes);
+                                         Xlib.XDefaultRootWindow(platform.Display),
+                                         300,
+                                         300,
+                                         (uint)width,
+                                         (uint)height,
+                                         1,
+                                         depth,
+                                         1,
+                                         Visual,
+                                         1<<1 | 1<<4,
+                                         ref attributes);
 
             Xlib.XSelectInput(platform.Display, _window, X11.EventMask.ExposureMask | 
                                                          X11.EventMask.StructureNotifyMask |
@@ -102,7 +102,7 @@ namespace DotX.Platform.Linux.X
                 if(oldWidth == width &&
                    oldHeight == height)
                 {
-                    Services.Logger.LogWindowingSystemEvent("Having resize request, but size didn't change. Ignoring.");
+                    //logger.LogWindowingSystemEvent("Having resize request, but size didn't change. Ignoring.");
                     return;
                 }
 

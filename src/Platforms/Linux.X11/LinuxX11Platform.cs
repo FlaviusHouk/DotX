@@ -12,6 +12,12 @@ namespace DotX.Platform.Linux.X
 {
     public class LinuxX11Platform : IPlatform
     { 
+        public static void Initialize(IServiceContainer container)
+        {
+            container.RegisterSingleton<IPlatform, LinuxX11Platform>();
+            container.RegisterSingleton<IBackBufferFactory, LinuxX11BackBufferFactory>();
+        }
+
         private readonly Lazy<X11.Atom> _deleteProtocolAtomProvider;
         private X11.Atom WM_DELETE_PROTOCOL => _deleteProtocolAtomProvider.Value;
 
@@ -32,9 +38,10 @@ namespace DotX.Platform.Linux.X
 
         public event Action<WindowEventArgs> WindowClosed;
         
-        public LinuxX11Platform()
+        public LinuxX11Platform(ILogger logger,
+                                IInputManager inputManager)
         {
-            _logger = Services.Logger;
+            _logger = logger;
             XlibWrapper.setlocale(6, string.Empty);
 
             if(!XlibWrapper.XSupportsLocale())
@@ -56,9 +63,9 @@ namespace DotX.Platform.Linux.X
             _deleteProtocolAtomProvider =
                 new Lazy<X11.Atom>(() => XlibWrapper.XInternAtom(Display, "WM_DELETE_WINDOW", false));
 
-            InputMethod = XlibWrapper.XOpenIM(Display, IntPtr.Zero, null, null);
-
-            _inputManager = Services.InputManager;
+            InputMethod = XlibWrapper.XOpenIM(Display, IntPtr.Zero, null, null);            
+            
+            _inputManager = inputManager;
         }
 
         private void WakeUp()

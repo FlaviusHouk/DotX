@@ -8,4 +8,8 @@
     <PackageReference Include="abioc" Version="0.8.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\DotX\DotX.csproj" />
+  </ItemGroup>
+
 </Project>

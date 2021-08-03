@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -39,7 +38,7 @@ namespace DotX.Xaml
             PropertyInfo contentProp = ObjType.GetProperties(BindingFlags.Instance | BindingFlags.Public)
                                               .Single(prop => prop.GetCustomAttribute<ContentPropertyAttribute>() is not null);
 
-            if(contentProp.PropertyType.GetInterface(nameof(IEnumerable)) is null && 
+            if(contentProp.PropertyType.GetInterface("IEnumerable") is null && 
                _children.Count > 1)
                 throw new Exception();
 

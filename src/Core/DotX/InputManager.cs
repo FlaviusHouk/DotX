@@ -6,7 +6,7 @@ using DotX.Data;
 
 namespace DotX
 {
-    internal class InputManager : IInputManager
+    public class InputManager : IInputManager
     {
         private readonly List<Visual> _currentlyHoveredVisuals = 
             new();

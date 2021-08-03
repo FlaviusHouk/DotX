@@ -91,8 +91,6 @@ namespace DotX.Platform.Linux.X
                     throw new Exception();
 
                 value = Marshal.PtrToStringUTF8(stringMem);
-
-                Services.Logger.LogWindowingSystemEvent($"Having string {value} with len {len}.");
             }
             finally
             {

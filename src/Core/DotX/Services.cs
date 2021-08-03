@@ -19,13 +19,10 @@ namespace DotX
         private static Lazy<IRenderManager> _renderManagerCreator =
             new(() => new DispatcherRenderManager(Dispatcher.CurrentDispatcher));
 
-        private static Lazy<IInputManager> _inputManagerCreator =
-            new(() => new InputManager());
-
         private static Lazy<IBackBufferFactory> _backBufferFactoryCreator =
             new(() => new InMemoryBackBufferFactory());
 
-        internal static IServiceProvider Provider { get; private set; }
+        internal static IServiceContainer Provider { get; private set; }
 
         public static ILogger Logger
         {
@@ -67,17 +64,19 @@ namespace DotX
         {
             get 
             {
-                return (IInputManager)Provider.GetService(typeof(IInputManager)) ??
-                    _inputManagerCreator.Value;
+                return (IInputManager)Provider.GetService(typeof(IInputManager));
             }
         }
 
-        public static void Initialize(IServiceProvider services)
+        public static void Initialize(IServiceContainer services)
         {
             if(Provider is not null)
                 throw new InvalidOperationException();
 
             Provider = services;
+
+            if(!Provider.IsRegistered<IInputManager>())
+                Provider.RegisterSingleton<IInputManager, InputManager>();
         }
     }
 }

@@ -26,17 +26,15 @@ namespace DotX.Sample
                                                   .CreateLogger();
 
             var loggerWrapper = new SerilogWrapper(logger);
-
-            RegistrationSetup setup = new RegistrationSetup();
-            setup.RegisterFixed<DotX.Interfaces.ILogger, SerilogWrapper>(new SerilogWrapper(logger));
             
-            IContainer container = 
-                setup.Construct(typeof(DotX.Interfaces.ILogger).Assembly,
-                                typeof(SerilogWrapper).Assembly);
+            var diContainer = new AbiocWrapper();
+            diContainer.RegisterSingleton<DotX.Interfaces.ILogger, SerilogWrapper>(loggerWrapper);
+            diContainer.RegisterSingleton<DotX.Application>();
 
-            Services.Initialize(new AbiocWrapper(container));
+            LinuxX11Platform.Initialize(diContainer);
+            Services.Initialize(diContainer);
 
-            var app = new DotX.Application(new LinuxX11Platform());
+            var app = (DotX.Application)diContainer.GetService(typeof(DotX.Application));
 
             var mainWin = new MyWindow();
             

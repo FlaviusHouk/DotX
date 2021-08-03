@@ -27,6 +27,9 @@ namespace DotX.Rendering
         {
             area ??= visualToInvalidate.RenderSize;
 
+            if(area.Value.Width == 0 || area.Value.Height == 0)
+                return;
+
             Logger.LogRender("Received request to redraw area {0}.", area);
             
             (Surface windowBuffer, object locker) = 

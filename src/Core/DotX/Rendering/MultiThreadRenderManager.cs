@@ -25,8 +25,9 @@ namespace DotX.Rendering
 
         private bool _isDisposed;
 
-        public MultiThreadRenderManager(Dispatcher dispatcher)  : 
-            base(Services.Logger,
+        public MultiThreadRenderManager(ILogger logger,
+                                        Dispatcher dispatcher)  : 
+            base(logger,
                  Services.BackBufferFactory)
         {
             _mainDispatcher = dispatcher;
