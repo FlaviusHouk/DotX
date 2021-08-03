@@ -1,4 +1,5 @@
 using System;
+using DotX.Extensions;
 using DotX.Interfaces;
 using DotX.Rendering;
 using DotX.Threading;
@@ -13,31 +14,21 @@ namespace DotX
             {}
         }
 
-        private static Lazy<ILogger> _logger = 
-            new(() => new DummyLogger());
-
         private static Lazy<IRenderManager> _renderManagerCreator =
             new(() => new DispatcherRenderManager(Dispatcher.CurrentDispatcher));
-
-        private static Lazy<IBackBufferFactory> _backBufferFactoryCreator =
-            new(() => new InMemoryBackBufferFactory());
 
         internal static IServiceContainer Provider { get; private set; }
 
         public static ILogger Logger
         {
-            get
-            {
-                return (ILogger)Provider.GetService(typeof(ILogger)) ??
-                            _logger.Value;
-            }
+            get => Provider.GetService<ILogger>();
         }
 
         public static ITimeline Timeline
         {
             get
             {
-                return (ITimeline)Provider.GetService(typeof(ITimeline)) ??
+                return Provider.GetService<ITimeline>() ??
                     DotX.Timeline.Instance;
             }
         }
@@ -46,26 +37,19 @@ namespace DotX
         {
             get
             {
-                return (IRenderManager)Provider.GetService(typeof(IRenderManager)) ??
+                return Provider.GetService<IRenderManager>() ??
                     _renderManagerCreator.Value;
             }
         }
         
         public static IBackBufferFactory BackBufferFactory
         {
-            get
-            {
-                return (IBackBufferFactory)Provider.GetService(typeof(IBackBufferFactory)) ??
-                    _backBufferFactoryCreator.Value;
-            }
+            get => Provider.GetService<IBackBufferFactory>();
         }
 
         public static IInputManager InputManager
         {
-            get 
-            {
-                return (IInputManager)Provider.GetService(typeof(IInputManager));
-            }
+            get => Provider.GetService<IInputManager>();
         }
 
         public static void Initialize(IServiceContainer services)
@@ -77,6 +61,12 @@ namespace DotX
 
             if(!Provider.IsRegistered<IInputManager>())
                 Provider.RegisterSingleton<IInputManager, InputManager>();
+
+            if(!Provider.IsRegistered<IBackBufferFactory>())
+                Provider.RegisterSingleton<IBackBufferFactory, InMemoryBackBufferFactory>();
+
+            if(!Provider.IsRegistered<ILogger>())
+                Provider.RegisterSingleton<ILogger, DummyLogger>(); 
         }
     }
 }
