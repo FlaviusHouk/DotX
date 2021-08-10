@@ -20,6 +20,17 @@ namespace DotX.Widgets
             window.WindowImpl.SetCursor(newValue);
         }
 
+        public static readonly CompositeObjectProperty TitleProperty =
+            CompositeObjectProperty.RegisterProperty<string, Window>(nameof(Title),
+                                                                     PropertyOptions.Inherits,
+                                                                     "Window",
+                                                                     changeValueFunc: OnTitlePropertyChanged);
+
+        private static void OnTitlePropertyChanged(Window w, string oldValue, string newValue)
+        {
+            w.WindowImpl.SetTitle(newValue);
+        }
+
         static Window()
         {
             CompositeObjectProperty.OverrideProperty<bool, Window>(IsVisibleProperty,
@@ -45,6 +56,12 @@ namespace DotX.Widgets
         {
             get => GetValue<Cursors>(CursorProperty);
             set => SetValue(CursorProperty, value);
+        }
+
+        public string Title
+        {
+            get => GetValue<string>(TitleProperty);
+            set => SetValue(TitleProperty, value);
         }
 
         public Window()

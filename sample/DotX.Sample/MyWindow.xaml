@@ -1,7 +1,7 @@
 <Window xmlns="clr-namespace:DotX.Widgets;assembly:DotX.Widgets"
         xmlns:x="clr-namespace:DotX.Xaml;assembly:DotX.Xaml"
         xmlns:templates="clr-namespace:DotX.Widgets.Templates"
-        Width = "300" Height = "300"
+        Width = "300" Height = "300" Title="DotX.Sample"
         Background="1;0;0">
 
     <Window.Styles>

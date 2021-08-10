@@ -15,6 +15,7 @@ namespace DotX.Interfaces
         void UpdateBackground(IBrush brush);
 
         void SetCursor(Cursors cursor);
+        void SetTitle(string title);
 
         void Close();
         

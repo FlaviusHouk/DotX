@@ -159,6 +159,11 @@ namespace DotX.Platform.Linux.X
             }
         }
 
+        public void SetTitle(string title)
+        {
+            Xlib.XStoreName(_platform.Display, XWindow, title);
+        }
+
         public void Dispose()
         {
             _cairoSurface.Dispose();
