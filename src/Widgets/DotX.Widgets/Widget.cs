@@ -13,7 +13,11 @@ using DotX.PropertySystem;
 
 namespace DotX.Widgets
 {
-    public class Widget : Visual, IStylable, IInputElement, IInitializable, IResourceOwner
+    public class Widget : Visual, 
+                          IStylable, 
+                          IInputElement, 
+                          IInitializable, 
+                          IResourceOwner
     {
         static Widget()
         {}
@@ -78,6 +82,14 @@ namespace DotX.Widgets
                                                                               PropertyOptions.AffectsRender,
                                                                               StretchBehavior.Stretch);
 
+        public static readonly CompositeObjectProperty NameProperty =
+            CompositeObjectProperty.RegisterProperty<string, Widget>(nameof(Name),
+                                                                     PropertyOptions.Inherits);
+
+        public static readonly CompositeObjectProperty DataContextProperty =
+            CompositeObjectProperty.RegisterProperty<object, Widget>(nameof(DataContext),
+                                                                     PropertyOptions.Inherits);
+
         
         public Widget LogicalParent { get; internal set; }
         public ICollection<Visual> VisualChildren { get; } =
@@ -131,6 +143,18 @@ namespace DotX.Widgets
             set => SetValue(StretchBehaviorProperty, value);
         }
 
+        public string Name
+        {
+            get => GetValue<string>(NameProperty);
+            set => SetValue(NameProperty, value);
+        }
+
+        public object DataContext
+        {
+            get => GetValue<object>(DataContextProperty);
+            set => SetValue(DataContextProperty, value);
+        }
+
         public bool IsInitialized
         {
             get;
@@ -147,7 +171,7 @@ namespace DotX.Widgets
             new List<string>();
 
         public ResourceCollection Resources { get; }
-            = new ResourceCollection();
+            = new ();
 
         public sealed override void Render(Context context)
         {
