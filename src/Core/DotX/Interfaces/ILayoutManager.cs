@@ -6,7 +6,7 @@ namespace DotX.Interfaces
     {
         void InvalidateMeasure(Visual visual);
 
-        void InvalidateArrange(Visual visual);
+        void InvalidateArrange(Visual visual, Rectangle prevRect);
 
         void InitiateRender(Visual visual, Rectangle? area);
     }

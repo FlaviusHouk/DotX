@@ -54,7 +54,11 @@ namespace DotX
                 return;
 
             IsArrangeDirty = true;
-            Services.LayoutManager.InvalidateArrange(this);
+
+            Rectangle prevRect = _previousArrangeRect ?? 
+                DesiredSize.ToRectangle(0, 0);
+
+            Services.LayoutManager.InvalidateArrange(this, prevRect);
         }
 
         public virtual void Arrange(Rectangle size)
@@ -64,6 +68,9 @@ namespace DotX
             {
                 return;
             }
+
+            /*if(size.Width < 0 || size.Height < 0)
+                throw new System.Exception();*/
 
             RenderSize = ArrangeCore(size);
             IsArrangeDirty = false;

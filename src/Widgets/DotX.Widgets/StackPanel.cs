@@ -84,26 +84,38 @@ namespace DotX.Widgets
 
             Size adjustedSize = size.Subtract(Padding);
 
+            var rects = new List<Size>(Children.Count);
             foreach (var child in Children)
             {
-                Margin margin = default;
+                Margin margin = Padding;
                 if(child is Widget w)
-                    margin = w.Margin;;
+                    margin = margin + w.Margin;
 
                 child.Measure(adjustedSize.Subtract(margin));
 
+                Size accumRect = 
+                    child.DesiredSize.Add(margin);
+
                 adjustedSize =
-                    GetRestSize(child.DesiredSize.Add(margin),
+                    GetRestSize(accumRect,
                                 adjustedSize,
                                 Orientation);
+
+                rects.Add(accumRect);
             }
             
-            return base.MeasureCore(Merge(Children.Select(c => c.DesiredSize),
-                                    Orientation).Add(Padding));
+            return base.MeasureCore(Merge(rects, Orientation));
         }
 
         protected override Rectangle ArrangeCore(Rectangle size)
         {
+            Logger.LogLayoutSystemEvent("Arranging {0}. Having x - {1}, y - {2}, w - {3}, h - {4}",
+                                        NameToLog,
+                                        size.X,
+                                        size.Y,
+                                        size.Width,
+                                        size.Height);
+                                        
             if (Children.Count < 1)
                 return new Rectangle(size.X, size.Y, 0, 0);
 
@@ -112,13 +124,16 @@ namespace DotX.Widgets
             double x = size.X + Padding.Left,
                    y = size.Y + Padding.Top,
                    width = size.Width - Padding.Left - Padding.Right,
-                   height = size.Height - Padding.Top - Padding.Bottom;
+                   height = size.Height - Padding.Top - Padding.Bottom,
+                   maxWidth = 0, maxHeight = 0;
 
             foreach (var child in Children)
             {
-                Margin margin = default;
+                Margin margin = Padding;
                 if(child is Widget w)
-                    margin = w.Margin;
+                {
+                    margin = margin + w.Margin;
+                }
 
                 Rectangle givenRect = 
                     new (x, y,
@@ -133,18 +148,30 @@ namespace DotX.Widgets
 
                 if (Orientation == Orientation.Vertical)
                 {
+                    double accumWidth = 
+                        child.RenderSize.Width + margin.Left + margin.Right;
+
                     y += child.RenderSize.Height + margin.Top + margin.Bottom;
                     width = size.Width;
                     height = size.Height - child.RenderSize.Height - margin.Top - margin.Bottom;
+
+                    if(maxWidth < accumWidth)
+                        maxWidth = accumWidth;
 
                     if (height < 0)
                         height = 0;
                 }
                 else
                 {
+                    double accumHeight =
+                        child.RenderSize.Height + margin.Top + margin.Bottom;
+
                     x += child.RenderSize.Width + margin.Left + margin.Right;
                     width = size.Width - child.RenderSize.Width - margin.Left - margin.Right;
                     height = size.Height;
+
+                    if(maxHeight < accumHeight)
+                        maxHeight = accumHeight;
 
                     if (width < 0)
                         width = 0;
@@ -156,13 +183,13 @@ namespace DotX.Widgets
                 return new Rectangle(allSize.X,
                                      allSize.Y,
                                      allSize.Width,
-                                     Children.Select(c => c.RenderSize.Height).Max());
+                                     maxHeight);
             }
             else
             {
                 return new Rectangle(allSize.X,
                                      allSize.Y,
-                                     Children.Select(c => c.RenderSize.Width).Max(),
+                                     maxWidth,
                                      allSize.Height);
             }
         }

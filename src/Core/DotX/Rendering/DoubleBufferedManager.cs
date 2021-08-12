@@ -29,8 +29,8 @@ namespace DotX.Rendering
             object locker;
 
             Rectangle renderSize = ((Visual)root).RenderSize;
-            int surfaceWidth = (int)renderSize.Width;
-            int surfaceHeight = (int)renderSize.Height;
+            int surfaceWidth = Math.Max((int)renderSize.Width, 1); //TODO: fix on layout side.
+            int surfaceHeight = Math.Max((int)renderSize.Height, 1);
 
             if(!WindowBuffers.TryGetValue(root, out var pair))
             {

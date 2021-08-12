@@ -89,7 +89,8 @@ namespace DotX.Widgets
         {
             _dirtyArea = default;
             Measure(new (width, height));
-
+            Arrange(new Rectangle(0, 0, width, height));
+            
             Invalidate();
         }
 

@@ -58,8 +58,8 @@
         </Border>
         
         <Border Foreground="0;0,5;0,5"
-                Margin="0;5;0;0" Padding="20">
-            <StackPanel Background="0,7;0;0,7">
+                Margin="0;5;0;0" Padding="20" Name="ThirdBorder">
+            <StackPanel Background="0,7;0;0,7" Name="TextBoxOwner">
                 <TextBlock Text="Hello!" Foreground="0;0;0" Classes="greet"
                            FontFamily = "Liberation Serif" 
                            Background="1;0,5;0"/>
@@ -68,9 +68,9 @@
                            FontFamily="Source Code Pro Regular"
                            Padding="10;0;0;0" Background="1;1;1"/>
                 
-                <TextBox Foreground="0;0;0" FontSize="12" Margin="5" 
+                <TextBox Foreground="0;0;0" FontSize="12" Margin="12" 
                          FontFamily = "Liberation Serif"
-                         Background="1;1;1"/>
+                         Background="1;1;1" Name="Interesting"/>
             </StackPanel>
         </Border>
     </StackPanel>

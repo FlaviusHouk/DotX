@@ -19,6 +19,10 @@ namespace DotX.Widgets
                           IInitializable, 
                           IResourceOwner
     {
+        private static int _count = 0;
+        private static readonly Lazy<ILogger> _loggerProvider = 
+            new (() => Services.Logger);
+            
         static Widget()
         {}
         
@@ -173,6 +177,16 @@ namespace DotX.Widgets
         public ResourceCollection Resources { get; }
             = new ();
 
+        protected ILogger Logger => _loggerProvider.Value;
+
+        protected string NameToLog => Name ?? $"{GetType().Name}_{_objCount}";
+
+        private int _objCount;
+        public Widget()
+        {
+            _objCount = _count++;
+        }
+
         public sealed override void Render(Context context)
         {
             if(!IsVisible)
@@ -183,6 +197,12 @@ namespace DotX.Widgets
 
         protected override Rectangle ArrangeCore(Rectangle size)
         {
+            Logger.LogLayoutSystemEvent("Arranging {0}. Having x - {1}, y - {2}, w - {3}, h - {4}",
+                                        NameToLog,
+                                        size.X,
+                                        size.Y,
+                                        size.Width,
+                                        size.Height);
             if(!IsVisible)
                 new Rectangle();
 
@@ -194,6 +214,11 @@ namespace DotX.Widgets
         
         protected override Size MeasureCore(Size size)
         {
+            Logger.LogLayoutSystemEvent("Measuring {0}. w - {1}, h - {2}",
+                                        NameToLog,
+                                        size.Width,
+                                        size.Height);
+
             double width = size.Width;
             double height = size.Height;
 
@@ -208,6 +233,13 @@ namespace DotX.Widgets
 
         protected override void OnRender(Context context)
         {
+            Logger.LogLayoutSystemEvent("Rendering {0} background. Having x - {1}, y - {2}, w - {3}, h - {4}",
+                                        NameToLog,
+                                        RenderSize.X,
+                                        RenderSize.Y,
+                                        RenderSize.Width,
+                                        RenderSize.Height);
+
             if(Background is null)
                 return;
 

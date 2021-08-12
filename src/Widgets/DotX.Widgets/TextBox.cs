@@ -72,18 +72,47 @@ namespace DotX.Widgets
 
         protected override Cairo.Rectangle ArrangeCore(Cairo.Rectangle size)
         {
-            _textPointer.Arrange(size);
-            return new Cairo.Rectangle(size.X, size.Y, size.Width - Margin.Left - Margin.Right * 5, size.Height);
+            Logger.LogLayoutSystemEvent("Arranging {0}. Having x - {1}, y - {2}, w - {3}, h - {4}",
+                                        NameToLog,
+                                        size.X,
+                                        size.Y,
+                                        size.Width,
+                                        size.Height);
+            
+            var strongRect = new Pango.Rectangle();
+            var weakRect = new Pango.Rectangle();
+
+            _layout.GetCursorPos(_layout.Lines[_linePosition].StartIndex + _charPosition, 
+                                 out strongRect, 
+                                 out weakRect);
+            double height = strongRect.Height / Pango.Scale.PangoScale;
+            double x = strongRect.X / Pango.Scale.PangoScale;
+
+            _textPointer.Arrange(new (size.X + x + Padding.Left,
+                                      size.Y + Padding.Top,
+                                      1,
+                                      height));
+            
+            return size;
         }
 
         protected override void OnRender(Cairo.Context context)
         {
+            Logger.LogLayoutSystemEvent("Rendering {0}. Having x - {1}, y - {2}, w - {3}, h - {4}",
+                                        NameToLog,
+                                        RenderSize.X,
+                                        RenderSize.Y,
+                                        RenderSize.Width,
+                                        RenderSize.Height);
+
             using var renderLayout = _layout.Copy();
 
             base.OnRender(context);
 
             context.MoveTo(RenderSize.X + Padding.Left, 
                            RenderSize.Y + Padding.Top);
+            
+            Foreground?.ApplyTo(context);
 
             CairoHelper.ShowLayout(context, renderLayout);
 
@@ -110,9 +139,12 @@ namespace DotX.Widgets
 
                 if(Text[_charPosition] == '\r' ||
                    Text[_charPosition] == '\n')
-                   _linePosition--;
+                {
+                    _linePosition--;
+                   
+                    _charPosition = _layout.Lines[_linePosition].Length - 1; 
+                }
 
-                InvalidateMeasure();
                 InvalidateTextPointer();
                 return;
             }
@@ -120,8 +152,8 @@ namespace DotX.Widgets
                     (_charPosition < _layout.Lines[_linePosition].Length ||
                     _linePosition < _layout.LineCount)) //right
             {
-                if(Text[_charPosition] == '\r' ||
-                   Text[_charPosition] == '\n')
+                if(_charPosition < _layout.Lines[_linePosition].Length &&
+                   (Text[_charPosition] == '\r' || Text[_charPosition] == '\n'))
                 {
                    _linePosition++;
                    _charPosition = 0;
@@ -131,7 +163,6 @@ namespace DotX.Widgets
                     _charPosition++;
                 }
 
-                InvalidateMeasure();
                 InvalidateTextPointer();
                 return;
             }
@@ -291,6 +322,7 @@ namespace DotX.Widgets
 
         private void InvalidateTextPointer()
         {
+            InvalidateArrange();
             _timeline.Reset(_pointerAnimation);
             
             if(_textPointer.IsVisible)

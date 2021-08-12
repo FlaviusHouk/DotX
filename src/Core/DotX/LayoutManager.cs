@@ -26,20 +26,11 @@ namespace DotX
             visual.Measure(visual.DesiredSize);
         }
 
-        public void InvalidateArrange(Visual visual)
+        public void InvalidateArrange(Visual visual, Rectangle prevRect)
         {
             visual.IsArrangeDirty = true;
-            while(visual.VisualParent is not null)
-            {
-                visual = visual.VisualParent;
-                visual.IsArrangeDirty = true;
-            }
 
-            Rectangle arrangeRect = 
-                visual.DesiredSize.ToRectangle(visual.RenderSize.X, 
-                                               visual.RenderSize.Y);
-
-            visual.Arrange(arrangeRect);
+            visual.Arrange(prevRect);
         }
 
         public void InitiateRender(Visual visual, Rectangle? area)

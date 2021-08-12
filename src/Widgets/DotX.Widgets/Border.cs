@@ -1,6 +1,7 @@
 using Cairo;
 using DotX.Data;
 using DotX.PropertySystem;
+using DotX.Extensions;
 
 namespace DotX.Widgets
 {
@@ -35,6 +36,13 @@ namespace DotX.Widgets
 
         protected override Rectangle ArrangeCore(Rectangle size)
         {
+            Logger.LogLayoutSystemEvent("Arranging {0}. Having x - {1}, y - {2}, w - {3}, h - {4}",
+                                        NameToLog,
+                                        size.X,
+                                        size.Y,
+                                        size.Width,
+                                        size.Height);
+
             Rectangle availableSize = GetContentArea(size);
             var contentSize = base.ArrangeCore(availableSize);
 
@@ -46,6 +54,13 @@ namespace DotX.Widgets
 
         protected override void OnRender(Context context)
         {
+            Logger.LogLayoutSystemEvent("Rendering {0}. Having x - {1}, y - {2}, w - {3}, h - {4}",
+                                        NameToLog,
+                                        RenderSize.X,
+                                        RenderSize.Y,
+                                        RenderSize.Width,
+                                        RenderSize.Height);
+
             context.MoveTo(RenderSize.X + BorderThickness / 2.0,
                            RenderSize.Y + BorderThickness / 2.0);
                            

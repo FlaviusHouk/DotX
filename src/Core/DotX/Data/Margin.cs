@@ -42,5 +42,13 @@ namespace DotX.Data
             Right = right;
             Bottom = bottom;
         }
+
+        public static Margin operator+(Margin one, Margin second)
+        {
+            return new Margin(one.Left + second.Left,
+                              one.Top + second.Top,
+                              one.Right + second.Right,
+                              one.Bottom + second.Bottom);
+        }
     }
 }
