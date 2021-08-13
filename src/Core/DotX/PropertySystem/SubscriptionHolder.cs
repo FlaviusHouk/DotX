@@ -25,7 +25,6 @@ namespace DotX.PropertySystem
             if(!isFinalizing)
                 GC.SuppressFinalize(this);
 
-            _observer.OnCompleted();
             _owner.Remove(_observer);
         }
 

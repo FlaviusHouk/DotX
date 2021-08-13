@@ -1,15 +1,48 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DotX.Data;
 using DotX.Interfaces;
 using DotX.PropertySystem;
 
 namespace DotX
 {
-    public class CompositeObject : IObservable<CompositeObjectProperty>
+    public class CompositeObject : Observable<CompositeObjectProperty>
     {
-        private ICollection<IObserver<CompositeObjectProperty>> _observers =
-            new List<IObserver<CompositeObjectProperty>>();
+        private class ValueObserver : IObserver<IPropertyValue>
+        {
+            private readonly CompositeObjectProperty _prop;
+            private readonly CompositeObject _owner;
+
+            public ValueObserver(CompositeObject owner,
+                                 CompositeObjectProperty prop)
+            {
+                _prop = prop;
+                _owner = owner;
+            }
+
+            public void OnCompleted()
+            {
+                throw new NotImplementedException();
+            }
+
+            public void OnError(Exception error)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void OnNext(IPropertyValue value)
+            {
+                _prop.Metadata.Changed(_owner,
+                                       _prop, 
+                                       value);
+
+                _owner.NotifyPropertyChanged(_prop);
+            }
+        }
+
+        private Dictionary<CompositeObjectProperty, IDisposable> _subscription = 
+            new();
 
         public CompositeObject()
         {
@@ -54,6 +87,9 @@ namespace DotX
 
             prop = PropertyManager.Instance.GetVirtualProperty(GetType(), prop);
 
+            if(value is IObservable<IPropertyValue> changable)
+                SubscribeToChangableValue(prop, changable);
+
             ValueStorage.Storage.SetValue(this, prop, value);
         }
 
@@ -66,6 +102,9 @@ namespace DotX
 
             if(!prop.PropertyType.IsAssignableFrom(value.GetType()))
                 throw new InvalidCastException();
+
+            if(_subscription.TryGetValue(prop, out var s))
+                s.Dispose();
 
             value = prop.Metadata.Coerce(this, value);
             T oldValue = default;
@@ -108,20 +147,21 @@ namespace DotX
             return PropertyManager.Instance.IsPropertyAvailable(GetType(), prop);
         }
 
-        public IDisposable Subscribe(IObserver<CompositeObjectProperty> observer)
-        {
-            if(observer is null)
-                throw new ArgumentNullException(nameof(observer));
-
-            _observers.Add(observer);
-
-            return new SubscriptionHolder<CompositeObjectProperty>(_observers, observer);
-        }
-
         protected void NotifyPropertyChanged(CompositeObjectProperty prop)
         {
-            foreach(var observer in _observers)
+            foreach(var observer in Observers)
                 observer.OnNext(prop);
+        }
+
+        private void SubscribeToChangableValue(CompositeObjectProperty prop,
+                                               IObservable<IPropertyValue> changableValue)
+        {
+            if(_subscription.TryGetValue(prop, out var s))
+                s.Dispose();
+
+            ValueObserver observer = new(this, prop);
+
+            _subscription[prop] = changableValue.Subscribe(observer);
         }
     }
 }

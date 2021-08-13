@@ -8,10 +8,12 @@ using DotX.Widgets.Data;
 
 namespace DotX.Widgets
 {
-    public class Button : Control, 
-                          IObservable<PressedEventArgs>,
+    public class Button : Control,
                           IFocusable
     {
+        static Button()
+        {}
+        
         public static readonly CompositeObjectProperty CommandProperty =
             CompositeObjectProperty.RegisterProperty<ICommand, Button>(nameof(Command),
                                                                        PropertyOptions.Inherits);
@@ -33,29 +35,19 @@ namespace DotX.Widgets
             set => SetValue(CommandParameterProperty, value);
         }
 
-        private ICollection<IObserver<PressedEventArgs>> _observers =
-            new List<IObserver<PressedEventArgs>>();
-
         public bool Focusable
         {
             get;
             set;
         }
 
+        public event Action<PressedEventArgs> Pressed;
+
         bool IFocusable.CanFocus => Focusable;
 
         public bool Focus()
         {
             return true;
-        }
-
-        public IDisposable Subscribe(IObserver<PressedEventArgs> observer)
-        {
-            if(observer is null)
-                throw new ArgumentNullException(nameof(observer));
-
-            _observers.Add(observer);
-            return new SubscriptionHolder<PressedEventArgs>(_observers, observer);
         }
 
         public override void OnPointerButton(PointerButtonEvent buttonEvent)
@@ -81,9 +73,7 @@ namespace DotX.Widgets
         protected void RaisePressEvent(PressedEventArgs args)
         {
             Command?.Execute(CommandParameter);
-
-            foreach(var observer in _observers)
-                observer.OnNext(args);
+            Pressed?.Invoke(args);
         }
     }
 }

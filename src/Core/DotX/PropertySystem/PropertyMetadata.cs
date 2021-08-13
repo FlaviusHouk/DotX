@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DotX.Interfaces;
 
 namespace DotX.PropertySystem
 {
@@ -59,6 +60,13 @@ namespace DotX.PropertySystem
 
             throw new InvalidCastException();
         }
+
+        public void Changed(CompositeObject obj,
+                            CompositeObjectProperty prop,
+                            IPropertyValue oldValue)
+        {
+            Changed(obj, oldValue.GetValue<TValue>(), obj.GetValue<TValue>(prop));
+        } 
 
         private TResult GetValue<TResult, TValue>(TValue value)
         {

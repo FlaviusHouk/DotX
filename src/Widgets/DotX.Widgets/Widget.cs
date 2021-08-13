@@ -49,7 +49,8 @@ namespace DotX.Widgets
 
         public static readonly CompositeObjectProperty BackgroundProperty =
             CompositeObjectProperty.RegisterProperty<IBrush, Widget>(nameof(Background),
-                                                                     PropertyOptions.Inherits);
+                                                                     PropertyOptions.Inherits |
+                                                                     PropertyOptions.AffectsRender);
 
         public static readonly CompositeObjectProperty ForegroundProperty =
             CompositeObjectProperty.RegisterProperty<IBrush, Widget>(nameof(Foreground),

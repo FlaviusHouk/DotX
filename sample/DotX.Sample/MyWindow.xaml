@@ -32,6 +32,7 @@
 
     <Window.Resources>
         <SolidColorBrush x:Key="BorderForeground" Red="0" Green="1" Blue="0"/>
+        <SolidColorBrush x:Key="ButtonBg" Red="0,3" Green="0,4" Blue="0,5"/>
     </Window.Resources>
 
     <StackPanel>
@@ -46,7 +47,7 @@
 
         <Border Foreground="0,2;0,4;0,6" Padding="10">
             <StackPanel Orientation="Horizontal">
-                <Button>
+                <Button Name="InteractiveButton" Background="{ DynamicResource Key=ButtonBg }">
                     <TextBlock Text="Press me!" Foreground="0;0;0" FontSize="15"
                                FontFamily="Source Code Pro Regular" />
                 </Button>
