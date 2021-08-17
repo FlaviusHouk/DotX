@@ -27,7 +27,7 @@ namespace DotX.Data
         protected void OnNext(T nextValue)
         {
             foreach(var observer in _observers)
-                observer.OnNext();
+                observer.OnNext(nextValue);
         }
 
         protected void OnError(Exception e)
