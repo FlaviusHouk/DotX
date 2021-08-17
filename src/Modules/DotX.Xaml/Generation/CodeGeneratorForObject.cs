@@ -4,11 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using DotX.Interfaces;
-using DotX;
+using DotX.Attributes;
 
 namespace DotX.Xaml.Generation
 {
-    /*public class CodeGeneratorForObject
+    public class CodeGeneratorForObject
     {
         private readonly string _className;
         private readonly string _ns;
@@ -88,18 +88,27 @@ namespace DotX.Xaml.Generation
                                    string objName,
                                    IReadOnlyCollection<string> children)
         {
-            if(obj.ObjType.IsSubclassOf(typeof(Panel)))
+            MethodInfo contentMethod =
+                obj.ObjType.GetMethods()
+                       .FirstOrDefault(m => m.GetCustomAttribute<ContentMethodAttribute>() is not null);
+
+            if(contentMethod is null)
             {
-                foreach(var child in children)
-                    output.Write($"{objName}.{nameof(Panel.AddChild)}({child});");
-            }
-            else if(obj.ObjType.IsSubclassOf(typeof(Control)))
-            {
-                output.Write($"{objName}.{nameof(Control.Content)} = {children.Single()};");
+                PropertyInfo contentProp =
+                    obj.ObjType.GetProperties()
+                               .FirstOrDefault(p => p.GetCustomAttribute<ContentPropertyAttribute>() is not null);
+
+                if(contentMethod is null)
+                {
+                    throw new Exception();
+                }
+
+                output.WriteLine($"{objName}.{contentProp.Name} = {children.Single()};");
             }
             else
             {
-                throw new Exception();
+                foreach(var child in children)
+                    output.WriteLine($"{objName}.{contentMethod.Name}({child});");
             }
         }
 
@@ -118,5 +127,5 @@ namespace DotX.Xaml.Generation
 
             return name;
         }
-    }*/
+    }
 }

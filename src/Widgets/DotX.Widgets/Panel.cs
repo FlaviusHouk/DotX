@@ -14,6 +14,7 @@ namespace DotX.Widgets
         [ContentProperty]
         public IReadOnlyList<Visual> Children => _children;
 
+        [ContentMethod]
         public void AddChild(Visual child)
         {
             _children.Add(child);
