@@ -21,18 +21,6 @@ namespace DotX
             CurrentApp._windows.Add(w);
         }
 
-        private static void RegisterConverters()
-        {
-            var converters = AppDomain.CurrentDomain.GetAssemblies()
-                                                    .SelectMany(ass => ass.GetTypes()
-                                                                          .Where(t => t.GetInterface(nameof(IValueConverter)) is not null))
-                                                    .ToDictionary(t => t.GetCustomAttribute<ConverterForTypeAttribute>().TargetType,
-                                                                       t => (IValueConverter)Activator.CreateInstance(t));
-
-            foreach(var converter in converters)
-                Converters.Converters.RegisterConverter(converter.Key, converter.Value);
-        }
-
         private readonly List<IRootVisual> _windows =
             new();
 
@@ -43,8 +31,6 @@ namespace DotX
         {
             Platform = platform;
             CurrentApp = this;
-            
-            RegisterConverters();
             
             Platform.WindowClosed += OnWindowClosed;
         }

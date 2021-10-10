@@ -103,8 +103,12 @@ namespace DotX.Widgets
                 Initialize();
 
             WindowImpl.Resize(Width, Height);
+            Measure(new (Width, Height));
+
             WindowImpl.Show();
             IsVisible = true;
+            Arrange(new (0, 0, Width, Height));
+            Invalidate();
         }
 
         private void WindowDirty(RenderEventArgs args)
@@ -112,7 +116,7 @@ namespace DotX.Widgets
             var dirtyRect = new Rectangle(args.X, args.Y, args.Width, args.Height);
             //MarkDirtyArea(dirtyRect);
 
-            _renderManager.Expose(this, dirtyRect);            
+            _renderManager.Expose(this, dirtyRect);
         }
 
         protected override Size MeasureCore(Size size)

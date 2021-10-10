@@ -3,9 +3,9 @@ using DotX.Interfaces;
 
 namespace DotX.Widgets.Templates
 {
+    [ContentMember(nameof(Template.ContentGenerator))]
     public class Template
     {
-        [ContentProperty]
         public IVisualTreeGenerator ContentGenerator { get; set; }
 
         public virtual void ApplyTo(Control c)

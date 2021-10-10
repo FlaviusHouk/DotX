@@ -21,7 +21,8 @@
     </PropertyGroup>
     
     <ProcessXamlTask CurrentProject="$(MSBuildProjectFullPath)"
-                     InputFiles="@(XAML)">
+	                   InputFiles="@(XAML)"
+	                   References="@(ReferencePath)">
       <Output TaskParameter="FilesToAdd" PropertyName="NewCSFiles"/>
     </ProcessXamlTask>
 

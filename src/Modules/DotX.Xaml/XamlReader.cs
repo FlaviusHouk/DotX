@@ -4,6 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 
+using DotX.Interfaces;
+using DotX.Extensions;
+
 namespace DotX.Xaml
 {
     public class XamlReader : IDisposable
@@ -20,19 +23,37 @@ namespace DotX.Xaml
 
         private readonly XmlReader _reader;
         private readonly Stack<XamlParseContext> _contexts = 
-            new Stack<XamlParseContext>();
+            new ();
         
+        private readonly ILogger _logger;
+
         private XamlParseContext CurrentContext => _contexts.Peek();
 
-        public XamlReader(TextReader input)
+        public XamlReader(TextReader input) : this(input, 
+                                                   Array.Empty<string>(), 
+                                                   new Services.DummyLogger())
         {
+
+        }
+
+        public XamlReader(TextReader input,
+                          string[] references,
+                          ILogger logger)
+        {
+            if(references is null)
+            {
+                throw new ArgumentNullException(nameof(references));
+            }
+
             _reader = new XmlTextReader(input);
-            _contexts.Push(XamlParseContext.CreateRootContext());
+            _logger = logger;
+            _contexts.Push(XamlParseContext.CreateRootContext(logger, references));
 
             //TODO: Add option to modify it by user
             CurrentContext.AddNamespace(new XamlNamespace(string.Empty, "DotX.Styling", "DotX"));
             CurrentContext.AddNamespace(new XamlNamespace(string.Empty, "DotX.Xaml.MarkupExtensions", "DotX.Xaml"));
             CurrentContext.AddNamespace(new XamlNamespace(string.Empty, "DotX.Brush", "DotX"));
+            CurrentContext.AddNamespace(new XamlNamespace(string.Empty, "DotX.Widgets", "DotX.Widgets"));
         }
 
         public XamlObject Parse()
@@ -112,7 +133,7 @@ namespace DotX.Xaml
 
             Type objType = CurrentContext.LookupObjectByName(elementName, ns);
 
-            var obj = new XamlObject(objType);            
+            XamlObject obj = new (objType);            
 
             foreach(var attr in attributes)
             {
@@ -161,7 +182,7 @@ namespace DotX.Xaml
 
         private void EnterScope()
         {
-            var newContext = new XamlParseContext(CurrentContext);
+            var newContext = new XamlParseContext(CurrentContext, _logger);
             _contexts.Push(newContext);
         }
 

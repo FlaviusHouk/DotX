@@ -8,7 +8,7 @@ namespace DotX
 {
     public static class Services
     {
-        private class DummyLogger : ILogger
+        public class DummyLogger : ILogger
         {
             public void Log(string category, LogLevel level, string format, params object[] parameters)
             {}

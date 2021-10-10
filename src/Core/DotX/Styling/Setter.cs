@@ -2,9 +2,11 @@ using System;
 using System.Linq;
 using DotX.Interfaces;
 using DotX.PropertySystem;
+using DotX.Attributes;
 
 namespace DotX.Styling
 {
+    [ContentMember(nameof(Value))]
     public class Setter : IEquatable<Setter>
     {
         private bool _wasSet;

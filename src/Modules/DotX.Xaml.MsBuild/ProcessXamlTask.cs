@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 using System.Linq;
+using DotX.Extensions;
 using DotX.Xaml.Generation;
 
 namespace DotX.Xaml.MsBuild
@@ -18,6 +19,8 @@ namespace DotX.Xaml.MsBuild
         [Required]
         public ITaskItem CurrentProject { get; set; }
 
+        public ITaskItem[] References { get; set; }
+
         public override bool Execute()
         {
             var filesToAdd = new List<ITaskItem>();
@@ -26,6 +29,9 @@ namespace DotX.Xaml.MsBuild
             var objPath = Path.Combine(projPath, "obj");
 
             Directory.CreateDirectory(objPath);
+            string[] referencePaths = 
+                References.Select(reference => reference.ItemSpec)
+                          .ToArray();
 
             foreach(var filePath in InputFiles.Select(f => f.ItemSpec))
             {
@@ -36,25 +42,21 @@ namespace DotX.Xaml.MsBuild
                     filesToAdd.Add(new TaskItem(fullName));
 
                 string ns = GetNamespace(filePath);
-                var generator = new CodeGeneratorForXaml(name, ns);
 
-                using var file = File.Open(fullName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-                file.SetLength(0);
-                using StreamWriter writer = new (file);
-
-                generator.Generate(writer);
-
-
-                /*XamlReader r = new (filePath);
+                using var xamlFile = File.OpenRead(filePath);
+                using var xamlReader = new StreamReader(xamlFile);
+                MsBuildLogger logger = new (Log);
+                XamlReader r = new (xamlReader, referencePaths, logger);
                 XamlObject obj = r.Parse();
 
-                CodeGenerator gen = new (name, "DotX.Sample");
+                CodeGeneratorForObject gen = new (name, ns, logger);
 
                 using var file = File.Open(fullName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
                 file.SetLength(0);
                 using StreamWriter writer = new (file);
 
-                gen.GenerateCodeForObject(obj, writer);*/
+                gen.GenerateCodeForObject(obj, writer);
+		        writer.Flush();
             }
 
             FilesToAdd = filesToAdd.ToArray();

@@ -1,15 +1,20 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+
+using DotX.Interfaces;
+using DotX.Extensions;
 
 namespace DotX.Xaml
 {
     internal class XamlParseContext
     {
-        public static XamlParseContext CreateRootContext()
+        public static XamlParseContext CreateRootContext(ILogger logger,
+                                                         string[] referencedAssemblies)
         {
-            return new XamlParseContext();
+            return new (referencedAssemblies, logger);
         }
 
         private XamlParseContext _parent;
@@ -23,13 +28,56 @@ namespace DotX.Xaml
 
         public XamlProperty CurrentProperty { get; set; }
 
-        public XamlParseContext(XamlParseContext parentContext)
+        public XamlParseContext(XamlParseContext parentContext,
+                                ILogger logger)
         {
             _parent = parentContext;
+            _logger = logger;
         }
 
-        private XamlParseContext()
-        {}
+        private readonly string[] _references = 
+            Array.Empty<string>();
+
+        private readonly ILogger _logger;
+
+        private XamlParseContext(string[] referencedAssemblies,
+                                 ILogger logger)
+        {
+            _references = referencedAssemblies;
+            _logger = logger;
+
+            AppDomain.CurrentDomain.AssemblyResolve += LookupAssembly;
+        }
+
+
+        private Dictionary<string, Assembly> _assemblyCache = new();
+
+        private Assembly LookupAssembly(object sender, ResolveEventArgs args)
+        {
+            string name = args.Name.Split(',').First().Trim();
+
+            if(_assemblyCache.TryGetValue(name, out var reqAsm))
+                return reqAsm;
+
+            if(name == "DotX")
+            {
+                return AppDomain.CurrentDomain
+                                .GetAssemblies()
+                                .First(a => a.GetName().Name == name);
+            }
+
+            //_logger.LogWarning($"Looking for {args.Name}...");
+            
+            var path = _references.FirstOrDefault(r => Path.GetFileNameWithoutExtension(r) == name);
+            //_logger.LogWarning($"Loading {path}...");
+
+            if(string.IsNullOrEmpty(path))
+                return default;
+
+            reqAsm = Assembly.LoadFile(path);
+            _assemblyCache.Add(name, reqAsm);
+            return reqAsm;
+        }
 
         public void AddNamespace(XamlNamespace ns)
         {
@@ -74,11 +122,13 @@ namespace DotX.Xaml
         {
             t = Type.GetType(fullName, false, true);
 
-            if(t is null && !string.IsNullOrEmpty(assemblyName))
+            if(t is null && 
+               !string.IsNullOrEmpty(assemblyName)  && 
+               _references.Any())
             {
-                var assembly = Assembly.Load(assemblyName);
-
-                t = assembly.GetType(fullName, false, true);
+                Assembly assembly = Assembly.Load(assemblyName);
+                t = assembly.GetType(fullName, false, true); 
+                _logger.LogWarning($"Type {t?.FullName} loaded.");
             }
 
             return t is not null;

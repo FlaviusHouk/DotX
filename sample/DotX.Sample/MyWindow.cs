@@ -7,7 +7,7 @@ namespace DotX.Sample
 {
     public partial class MyWindow : Window
     {
-        partial void LoadComponent();
+        private partial void LoadComponent();
 
         public MyWindow()
         {

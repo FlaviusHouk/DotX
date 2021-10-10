@@ -10,6 +10,7 @@ using DotX.Interfaces;
 
 namespace DotX.Widgets
 {
+    [ContentMember(nameof(Control.Content))]
     public class Control : Widget
     {
         static Control()
@@ -43,7 +44,6 @@ namespace DotX.Widgets
             control.OnTemplateChanged();
         }
 
-        [ContentProperty]
         public Visual Content
         {
             get => GetValue<Visual>(ContentProperty);

@@ -7,14 +7,13 @@ using DotX.Attributes;
 
 namespace DotX.Widgets
 {
+    [ContentMember(nameof(Panel.AddChild), true)]
     public abstract class Panel : Widget
     {
         private readonly List<Visual> _children = new();
 
-        [ContentProperty]
         public IReadOnlyList<Visual> Children => _children;
 
-        [ContentMethod]
         public void AddChild(Visual child)
         {
             _children.Add(child);

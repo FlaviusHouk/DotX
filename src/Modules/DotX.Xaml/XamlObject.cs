@@ -35,12 +35,18 @@ namespace DotX.Xaml
 
         internal void AddToContent(XamlObject child)
         {
-            PropertyInfo contentProp = ObjType.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                                              .Single(prop => prop.GetCustomAttribute<ContentPropertyAttribute>() is not null);
+            var attr = ObjType.GetCustomAttributes<ContentMemberAttribute>(true)
+                              .First();
+            
+            if (!attr.IsMethod)
+            {
+                PropertyInfo contentProp = ObjType.GetProperty(attr.MemberName);
 
-            if(contentProp.PropertyType.GetInterface("IEnumerable") is null && 
-               _children.Count > 1)
-                throw new Exception();
+                if (contentProp is null)
+                {
+                    throw new Exception($"There is no content property for {ObjType.FullName}.");
+                }
+            }
 
             _children.Add(child);
         }

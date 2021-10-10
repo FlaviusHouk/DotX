@@ -178,31 +178,35 @@ namespace DotX.Xaml.Generation
                 return;
 
             var targets = children.Select(c => c.Target);
-            PropertyInfo memberToSet = target.GetType()
-                                             .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                                             .First(p => Attribute.IsDefined(p, typeof(ContentPropertyAttribute)));
+            var contentAttr = target.GetType()
+                                    .GetCustomAttribute<ContentMemberAttribute>(true);
 
-            if (memberToSet.PropertyType.GetInterface(nameof(System.Collections.IEnumerable)) is not null)
+            if (contentAttr.IsMethod)
             {
-                var methodToInvoke =
+                MethodInfo addMethod = 
                     target.GetType()
-                          .GetMethod("AddChild",
-                                     BindingFlags.Instance | BindingFlags.Public);
+                          .GetMethod(contentAttr.MemberName);
 
                 foreach (var child in targets.Cast<Visual>())
-                    methodToInvoke.Invoke(target, new[] { child });
-            }
-            else if (memberToSet.PropertyType.IsAssignableFrom(typeof(Visual)))
-            {
-                memberToSet.SetValue(target, targets.Cast<Visual>().Single());
-            }
-            else if(memberToSet.PropertyType == typeof(IVisualTreeGenerator) && children.Count == 1)
-            {
-                memberToSet.SetValue(target, new TemplateVisualGenerator(children.First().Info));
+                    addMethod.Invoke(target, new[] { child });
             }
             else
             {
-                throw new Exception();
+                PropertyInfo prop = target.GetType()
+                                          .GetProperty(contentAttr.MemberName);
+
+                if (prop.PropertyType.IsAssignableFrom(typeof(Visual)))
+                {
+                    prop.SetValue(target, targets.Cast<Visual>().Single());
+                }
+                else if (prop.PropertyType == typeof(IVisualTreeGenerator) && children.Count == 1)
+                {
+                    prop.SetValue(target, new TemplateVisualGenerator(children.First().Info));
+                }
+                else
+                {
+                    throw new Exception();
+                }
             }
         }
     }
