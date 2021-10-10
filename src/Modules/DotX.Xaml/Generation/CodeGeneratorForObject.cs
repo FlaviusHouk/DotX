@@ -44,9 +44,9 @@ namespace DotX.Xaml.Generation
             initializeMethod.Name = "LoadComponent";
             initializeMethod.ReturnType = new ("void");
 
-            GenerateProperties(initializeMethod, obj, "this");
+            GenerateProperties(partClassDef, initializeMethod, obj, "this");
 
-            var childObjects = obj.Children.Select(child => GenerateCodeForObjectCore(child, initializeMethod)).ToArray();
+            var childObjects = obj.Children.Select(child => GenerateCodeForObjectCore(child, initializeMethod, partClassDef)).ToArray();
 
             AssignContent(obj, initializeMethod, "this", childObjects);
 
@@ -59,16 +59,26 @@ namespace DotX.Xaml.Generation
         }
 
         private string GenerateCodeForObjectCore(XamlObject obj, 
-                                                 CodeMemberMethod initializeMethod)
+                                                 CodeMemberMethod initializeMethod,
+                                                 CodeTypeDeclaration classDef)
         {
-            string objName = GetObjectName(obj.ObjType);
+            string objName = GetObjectName(obj);
             //_provider.CreateValidIdentifier();
 
-            initializeMethod.Statements.Add(GenerateAssignmentStatement(objName, obj.ObjType.FullName));
+            if(objName.StartsWith("_"))
+            {
+                CodeMemberField namedObj = 
+                    new (new CodeTypeReference(obj.ObjType),
+                         objName);
 
-            GenerateProperties(initializeMethod, obj, objName);
+                classDef.Members.Add(namedObj);
+            }
 
-            var childObjects = obj.Children.Select(child => GenerateCodeForObjectCore(child, initializeMethod)).ToArray();
+            initializeMethod.Statements.Add(GenerateAssignmentStatement(objName, obj));
+
+            GenerateProperties(classDef, initializeMethod, obj, objName);
+
+            var childObjects = obj.Children.Select(child => GenerateCodeForObjectCore(child, initializeMethod, classDef)).ToArray();
 
             if(childObjects.Length > 0)
                 AssignContent(obj, initializeMethod, objName, childObjects);
@@ -76,7 +86,8 @@ namespace DotX.Xaml.Generation
             return objName;
         }
 
-        private void GenerateProperties(CodeMemberMethod initializeMethod,
+        private void GenerateProperties(CodeTypeDeclaration classDef,
+                                        CodeMemberMethod initializeMethod,
                                         XamlObject target,
                                         string objName)
         {
@@ -137,7 +148,7 @@ namespace DotX.Xaml.Generation
                         throw new Exception($"Cannot find property {prop.PropertyName} on type {target.ObjType.Name}");
                     }
 
-                    var children = fullProp.Children.Select(c => (GenerateCodeForObjectCore(c, initializeMethod), c))
+                    var children = fullProp.Children.Select(c => (GenerateCodeForObjectCore(c, initializeMethod, classDef), c))
                                                     .ToDictionary(c => c.Item1,
                                                                   c => c.c);
 
@@ -172,7 +183,7 @@ namespace DotX.Xaml.Generation
                 }
                 else if (extendedProp is not null)
                 {
-                    string extObjName = GenerateCodeForObjectCore(extendedProp.Extension, initializeMethod);
+                    string extObjName = GenerateCodeForObjectCore(extendedProp.Extension, initializeMethod, classDef);
                     var clrProp = target.GetType().GetProperty(extendedProp.PropertyName);
 
 
@@ -363,8 +374,21 @@ namespace DotX.Xaml.Generation
             method.Statements.Add(assignStatement);
         }
 
-        private string GetObjectName(Type objType)
+        private string GetObjectName(XamlObject obj)
         {
+            Type objType = obj.ObjType;
+
+            if(obj.Properties.Any(p => p.PropertyName == "Name"))
+            {
+                string setName = 
+                    obj.Properties.OfType<InlineXamlProperty>()
+                                  .First(p => p.PropertyName == "Name")
+                                  .RawValue;
+                                  
+                return $"_{setName}";
+            }
+
+
             if(!_nameCounter.TryGetValue(objType, out int counter))
             {
                 _nameCounter.Add(objType, 1);
@@ -379,13 +403,27 @@ namespace DotX.Xaml.Generation
             return name;
         }
 
-        private CodeStatement GenerateAssignmentStatement(string objName, string objTypeName)
+        private CodeStatement GenerateAssignmentStatement(string objName, XamlObject obj)
         {
-            CodeTypeReference reference = new (objTypeName);
-            CodeVariableDeclarationStatement definition = new (reference, objName);
-            definition.InitExpression = new CodeObjectCreateExpression (objTypeName);
+            CodeObjectCreateExpression initExpr = 
+                new (obj.ObjType.FullName);
 
-            return definition;
+            CodeStatement result;
+
+            if(obj.Properties.Any(p => p.PropertyName == "Name"))
+            {
+                CodeVariableReferenceExpression objRef =
+                    new(objName);
+
+                result = new CodeAssignStatement(objRef, initExpr);
+            }
+            else
+            {
+                CodeTypeReference reference = new (obj.ObjType.FullName);
+                result = new CodeVariableDeclarationStatement (reference, objName, initExpr);
+            }
+
+            return result;
         }
 
         private void GeneratePrimitiveAssignmentStatement(string objName,

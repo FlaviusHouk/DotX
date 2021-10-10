@@ -18,17 +18,14 @@ namespace DotX.Sample
         {
             base.OnInitialize();
 
-            if(this.TryFindChild<Button>(b => b.Name == "InteractiveButton", out Button but))
+            Random r = new();
+            _InteractiveButton.Pressed+= args =>
             {
-                Random r = new();
-                but.Pressed+= args =>
-                {
-                    Resources["ButtonBg"] = 
-                        new SolidColorBrush(r.NextDouble(), 
-                                            r.NextDouble(), 
-                                            r.NextDouble());
-                };
-            }
+                Resources["ButtonBg"] = 
+                    new SolidColorBrush(r.NextDouble(), 
+                                        r.NextDouble(), 
+                                        r.NextDouble());
+            };
         }
     }
 }
