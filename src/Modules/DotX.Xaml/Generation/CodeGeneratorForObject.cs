@@ -432,7 +432,7 @@ namespace DotX.Xaml.Generation
                                                           object value,
                                                           CodeMemberMethod method)
         {
-            _logger.LogWarning($"Converter for {propInfo.Name} of type {propInfo.PropertyType.Name} is {converterType}.");
+            //_logger.LogWarning($"Converter for {propInfo.Name} of type {propInfo.PropertyType.Name} is {converterType}.");
             CodeVariableReferenceExpression obj = new (objName);
             CodePropertyReferenceExpression prop = new (obj, propInfo.Name);
 

@@ -227,7 +227,7 @@ namespace DotX.Xaml.Generation
             WriteLine(w, e.Name);
             OpenBrace(w);
 
-            _logger.LogWarning($"Having {e.Members.Count} members.");
+            //_logger.LogWarning($"Having {e.Members.Count} members.");
             foreach (CodeTypeMember m in e.Members)
             {                
                 GenerateCodeForMember(m, w, o);
@@ -273,7 +273,6 @@ namespace DotX.Xaml.Generation
                     GenerateCodeForProperty(prop, w, o);
                     break;
                 case CodeTypeDeclaration typeDeclaration:
-                    _logger.LogWarning("Skipping type declaration.");
                     break;
                 default:
                     throw new NotImplementedException($"Cannot process {member.GetType().Name}.");

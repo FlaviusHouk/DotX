@@ -128,7 +128,7 @@ namespace DotX.Xaml
             {
                 Assembly assembly = Assembly.Load(assemblyName);
                 t = assembly.GetType(fullName, false, true); 
-                _logger.LogWarning($"Type {t?.FullName} loaded.");
+                //_logger.LogWarning($"Type {t?.FullName} loaded.");
             }
 
             return t is not null;
